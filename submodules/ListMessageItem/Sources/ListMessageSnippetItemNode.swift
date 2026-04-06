@@ -712,6 +712,11 @@ public final class ListMessageSnippetItemNode: ListMessageNode {
                     strongSelf.contextSourceNode.contentRect = extractedRect
                     
                     strongSelf.appliedItem = item
+                    if let message = item.message {
+                        strongSelf.alpha = BogramSettings.isDeletedMessageId(message.id) ? 0.62 : 1.0
+                    } else {
+                        strongSelf.alpha = 1.0
+                    }
                     strongSelf.currentMedia = selectedMedia
                     strongSelf.currentPrimaryUrl = primaryUrl
                     strongSelf.currentIsInstantView = isInstantView

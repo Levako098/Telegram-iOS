@@ -46,6 +46,18 @@ import BundleIconComponent
 import MarqueeComponent
 import EdgeEffect
 
+private func developerBadgeTextColor(isOverlay: Bool, presentationData: PresentationData) -> UIColor {
+    return isOverlay ? .white : presentationData.theme.list.itemAccentColor
+}
+
+private func developerBadgeBackgroundColor(isOverlay: Bool, presentationData: PresentationData) -> UIColor {
+    if isOverlay {
+        return UIColor(white: 1.0, alpha: 0.16)
+    } else {
+        return presentationData.theme.list.itemBlocksBackgroundColor
+    }
+}
+
 final class PeerInfoHeaderNavigationTransition {
     let sourceNavigationBar: NavigationBar
     let sourceTitleView: ChatTitleView
@@ -164,6 +176,8 @@ final class PeerInfoHeaderNode: ASDisplayNode {
     
     var musicBackground: UIView?
     var music: ComponentView<Empty>?
+    var developerBadgeView: UIView?
+    var developerBadgeLabel: UILabel?
     
     var performButtonAction: ((PeerInfoHeaderButtonKey, PeerInfoHeaderButtonNode?, ContextGesture?) -> Void)?
     var requestAvatarExpansion: ((Bool, [AvatarGalleryEntry], AvatarGalleryEntry?, (ASDisplayNode, CGRect, () -> (UIView?, UIView?))?) -> Void)?
@@ -2685,11 +2699,52 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                 } else {
                     musicTransition.updateFrame(view: musicView, frame: musicFrame)
                 }
-                
+
                 if let _ = self.navigationTransition {
                     transition.updateAlpha(layer: musicView.layer, alpha: 1.0 - transitionFraction)
                 } else {
                     ContainedViewLayoutTransition.animated(duration: 0.2, curve: .easeInOut).updateAlpha(layer: musicView.layer, alpha: backgroundBannerAlpha)
+                }
+            }
+            if BogramSettings.shouldShowDeveloperBadge(for: peer) {
+                let developerBadgeView = self.developerBadgeView ?? {
+                    let view = UIView()
+                    view.layer.cornerCurve = .continuous
+                    self.regularContentNode.view.addSubview(view)
+                    self.developerBadgeView = view
+
+                    let label = UILabel()
+                    label.font = Font.semibold(11.0)
+                    view.addSubview(label)
+                    self.developerBadgeLabel = label
+                    return view
+                }()
+
+                let developerBadgeLabel = self.developerBadgeLabel!
+                developerBadgeView.backgroundColor = developerBadgeBackgroundColor(isOverlay: isOverlay, presentationData: presentationData)
+                developerBadgeLabel.textColor = developerBadgeTextColor(isOverlay: isOverlay, presentationData: presentationData)
+                developerBadgeLabel.text = "\u{2708} \u{420}\u{430}\u{437}\u{440}\u{430}\u{431}\u{43E}\u{442}\u{447}\u{438}\u{43A} \u{43C}\u{43E}\u{434}\u{438}\u{444}\u{438}\u{43A}\u{430}\u{446}\u{438}\u{438}"
+                developerBadgeLabel.sizeToFit()
+
+                let developerBadgeSize = CGSize(width: developerBadgeLabel.bounds.width + 16.0, height: 22.0)
+                let developerBadgeFrame = CGRect(origin: CGPoint(x: 0.0, y: musicFrame.maxY + 4.0), size: developerBadgeSize)
+                developerBadgeView.layer.cornerRadius = developerBadgeFrame.height * 0.5
+                transition.updateFrame(view: developerBadgeView, frame: developerBadgeFrame)
+                developerBadgeLabel.frame = CGRect(origin: CGPoint(x: 8.0, y: floor((developerBadgeFrame.height - developerBadgeLabel.bounds.height) * 0.5)), size: developerBadgeLabel.bounds.size)
+                if let _ = self.navigationTransition {
+                    transition.updateAlpha(layer: developerBadgeView.layer, alpha: 1.0 - transitionFraction)
+                } else {
+                    ContainedViewLayoutTransition.animated(duration: 0.2, curve: .easeInOut).updateAlpha(layer: developerBadgeView.layer, alpha: backgroundBannerAlpha)
+                }
+            } else if let developerBadgeView = self.developerBadgeView {
+                self.developerBadgeView = nil
+                self.developerBadgeLabel = nil
+                if transition.isAnimated {
+                    developerBadgeView.layer.animateAlpha(from: developerBadgeView.alpha, to: 0.0, duration: 0.2, removeOnCompletion: false, completion: { _ in
+                        developerBadgeView.removeFromSuperview()
+                    })
+                } else {
+                    developerBadgeView.removeFromSuperview()
                 }
             }
         } else {
@@ -2711,6 +2766,17 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                     })
                 } else {
                     music.view?.removeFromSuperview()
+                }
+            }
+            if let developerBadgeView = self.developerBadgeView {
+                self.developerBadgeView = nil
+                self.developerBadgeLabel = nil
+                if transition.isAnimated {
+                    developerBadgeView.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.2, removeOnCompletion: false, completion: { _ in
+                        developerBadgeView.removeFromSuperview()
+                    })
+                } else {
+                    developerBadgeView.removeFromSuperview()
                 }
             }
         }

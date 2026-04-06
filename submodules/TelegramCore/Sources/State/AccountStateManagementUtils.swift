@@ -4411,7 +4411,9 @@ func replayFinalState(
                     }
                 }
             case let .DeleteMessagesWithGlobalIds(ids):
-                if !keepDeletedMessages {
+                if keepDeletedMessages {
+                    BogramSettings.markDeletedMessageIds(transaction.messageIdsForGlobalIds(ids))
+                } else {
                     var resourceIds: [MediaResourceId] = []
                     transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
                         addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
@@ -4422,7 +4424,9 @@ func replayFinalState(
                     deletedMessageIds.append(contentsOf: ids.map { .global($0) })
                 }
             case let .DeleteMessages(ids):
-                if !keepDeletedMessages {
+                if keepDeletedMessages {
+                    BogramSettings.markDeletedMessageIds(ids)
+                } else {
                     _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: ids, manualAddMessageThreadStatsDifference: { id, add, remove in
                         addMessageThreadStatsDifference(threadKey: id, remove: remove, addedMessagePeer: nil, addedMessageId: nil, isOutgoing: false)
                     })

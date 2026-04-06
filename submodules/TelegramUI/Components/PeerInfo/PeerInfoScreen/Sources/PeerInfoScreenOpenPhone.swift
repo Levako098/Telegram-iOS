@@ -12,6 +12,9 @@ import UndoUI
 
 extension PeerInfoScreenNode {
     func openPhone(value: String, node: ASDisplayNode, gesture: ContextGesture?, progress: Promise<Bool>?) {
+        if BogramSettings.hidePhoneNumbers {
+            return
+        }
         guard let sourceNode = node as? ContextExtractedContentContainingNode else {
             return
         }

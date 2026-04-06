@@ -1,4 +1,4 @@
-import Postbox
+﻿import Postbox
 import SwiftSignalKit
 
 public struct UserLimitsConfiguration: Equatable {
@@ -30,7 +30,7 @@ public struct UserLimitsConfiguration: Equatable {
     public var maxChannelRecommendationsCount: Int32
     public var maxConferenceParticipantCount: Int32
     public var maxBotsCreated: Int32
-    
+
     public static var defaultValue: UserLimitsConfiguration {
         return UserLimitsConfiguration(
             maxPinnedChatCount: 5,
@@ -40,8 +40,8 @@ public struct UserLimitsConfiguration: Equatable {
             maxPublicLinksCount: 10,
             maxSavedGifCount: 200,
             maxFavedStickerCount: 5,
-            maxFoldersCount: 10,
-            maxFolderChatsCount: 100,
+            maxFoldersCount: 1000,
+            maxFolderChatsCount: 10000,
             maxCaptionLength: 1024,
             maxUploadFileParts: 4000,
             maxAboutLength: 70,
@@ -132,7 +132,7 @@ extension UserLimitsConfiguration {
         if isPremium {
             defaultValue.maxPinnedSavedChatCount = 100
         }
-        
+
         func getValue(_ key: String, orElse defaultValue: Int32) -> Int32 {
             if let value = appConfiguration.data?[key + keySuffix] as? Double {
                 return Int32(value)
@@ -140,7 +140,7 @@ extension UserLimitsConfiguration {
                 return defaultValue
             }
         }
-        
+
         func getGeneralValue(_ key: String, orElse defaultValue: Int32) -> Int32 {
             if let value = appConfiguration.data?[key] as? Double {
                 return Int32(value)
@@ -148,7 +148,7 @@ extension UserLimitsConfiguration {
                 return defaultValue
             }
         }
-        
+
         self.maxPinnedChatCount = getValue("dialogs_pinned_limit", orElse: defaultValue.maxPinnedChatCount)
         self.maxPinnedSavedChatCount = getValue("saved_dialogs_pinned_limit", orElse: defaultValue.maxPinnedSavedChatCount)
         self.maxArchivedPinnedChatCount = getValue("dialogs_folder_pinned_limit", orElse: defaultValue.maxArchivedPinnedChatCount)
@@ -177,5 +177,8 @@ extension UserLimitsConfiguration {
         self.maxChannelRecommendationsCount = getValue("recommended_channels_limit", orElse: defaultValue.maxChannelRecommendationsCount)
         self.maxConferenceParticipantCount = getGeneralValue("conference_call_size_limit", orElse: defaultValue.maxConferenceParticipantCount)
         self.maxBotsCreated = getValue("bots_create_limit", orElse: defaultValue.maxBotsCreated)
+
+        self.maxFoldersCount = max(self.maxFoldersCount, 1000)
+        self.maxFolderChatsCount = max(self.maxFolderChatsCount, 10000)
     }
 }

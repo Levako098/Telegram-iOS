@@ -127,7 +127,7 @@ func infoItems(data: PeerInfoScreenData?, context: AccountContext, presentationD
             }))
         }
         
-        if let phone = user.phone {
+        if let phone = user.phone, !BogramSettings.hidePhoneNumbers {
             let formattedPhone = formatPhoneNumber(context: context, number: phone)
             let label: String
             if formattedPhone.hasPrefix("+888 ") {
@@ -140,6 +140,10 @@ func infoItems(data: PeerInfoScreenData?, context: AccountContext, presentationD
             }, longTapAction: nil, contextAction: { node, gesture, _ in
                 interaction.openPhone(phone, node, gesture, nil)
             }, requestLayout: { animated in
+                interaction.requestLayout(animated)
+            }))
+        } else if user.phone != nil && BogramSettings.hidePhoneNumbers {
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: presentationData.strings.ContactInfo_PhoneLabelMobile, text: presentationData.strings.ContactInfo_PhoneNumberHidden, textColor: .primary, action: nil, longTapAction: nil, contextAction: nil, requestLayout: { animated in
                 interaction.requestLayout(animated)
             }))
         }

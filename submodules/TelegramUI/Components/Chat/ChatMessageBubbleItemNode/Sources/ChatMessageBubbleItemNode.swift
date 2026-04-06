@@ -3756,6 +3756,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
         strongSelf.appliedForwardInfo = (forwardSource, forwardAuthorSignature)
         strongSelf.updateAccessibilityData(accessibilityData)
         strongSelf.disablesComments = disablesComments
+        strongSelf.alpha = BogramSettings.isDeletedMessageId(item.message.id) ? 0.62 : 1.0
         
         strongSelf.authorNameColor = authorNameColor
         strongSelf.authorRank = authorRank

@@ -201,7 +201,8 @@ extension PeerInfoScreenNode {
                 return
             }
             if let user = self.data?.peer as? TelegramUser, let phoneNumber = user.phone {
-                let introController = PrivacyIntroController(context: self.context, mode: .changePhoneNumber(phoneNumber), proceedAction: { [weak self] in
+                let displayPhoneNumber = BogramSettings.hidePhoneNumbers ? self.presentationData.strings.ContactInfo_PhoneNumberHidden : phoneNumber
+                let introController = PrivacyIntroController(context: self.context, mode: .changePhoneNumber(displayPhoneNumber), proceedAction: { [weak self] in
                     if let strongSelf = self, let navigationController = strongSelf.controller?.navigationController as? NavigationController {
                         navigationController.replaceTopController(ChangePhoneNumberController(context: strongSelf.context), animated: true)
                     }
@@ -221,16 +222,10 @@ extension PeerInfoScreenNode {
                 guard let strongSelf = self else {
                     return
                 }
-                var maximumAvailableAccounts: Int = 3
-                if accountAndPeer?.1.isPremium == true && !strongSelf.context.account.testingEnvironment {
-                    maximumAvailableAccounts = 4
-                }
+                var maximumAvailableAccounts: Int = maximumNumberOfAccounts
                 var count: Int = 1
                 for (accountContext, peer, _) in accountsAndPeers {
                     if !accountContext.account.testingEnvironment {
-                        if peer.isPremium {
-                            maximumAvailableAccounts = 4
-                        }
                         count += 1
                     }
                 }
@@ -255,7 +250,8 @@ extension PeerInfoScreenNode {
         case .logout:
             if let user = self.data?.peer as? TelegramUser, let phoneNumber = user.phone {
                 if let controller = self.controller, let navigationController = controller.navigationController as? NavigationController {
-                    self.controller?.push(logoutOptionsController(context: self.context, navigationController: navigationController, canAddAccounts: true, phoneNumber: phoneNumber))
+                    let displayPhoneNumber = BogramSettings.hidePhoneNumbers ? self.presentationData.strings.ContactInfo_PhoneNumberHidden : phoneNumber
+                    self.controller?.push(logoutOptionsController(context: self.context, navigationController: navigationController, canAddAccounts: true, phoneNumber: displayPhoneNumber))
                 }
             }
         case .rememberPassword:

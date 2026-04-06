@@ -1156,6 +1156,11 @@ public final class ListMessageFileItemNode: ListMessageNode {
                     strongSelf.message = message
                     strongSelf.context = item.context
                     strongSelf.appliedItem = item
+                    if let message = item.message {
+                        strongSelf.alpha = BogramSettings.isDeletedMessageId(message.id) ? 0.62 : 1.0
+                    } else {
+                        strongSelf.alpha = 1.0
+                    }
                     strongSelf.layoutParams = params
                     strongSelf.contentSizeValue = nodeLayout.contentSize
                     strongSelf.currentLeftOffset = leftOffset

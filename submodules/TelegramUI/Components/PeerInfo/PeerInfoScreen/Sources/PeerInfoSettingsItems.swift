@@ -1,4 +1,4 @@
-import Foundation
+﻿import Foundation
 import UIKit
 import Display
 import AccountContext
@@ -87,7 +87,12 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
                 interaction.openSettings(.premiumManagement)
             }))
         } else if settings.suggestPhoneNumberConfirmation, let peer = data.peer as? TelegramUser {
-            let phoneNumber = formatPhoneNumber(context: context, number: peer.phone ?? "")
+            let phoneNumber: String
+            if BogramSettings.hidePhoneNumbers {
+                phoneNumber = presentationData.strings.ContactInfo_PhoneNumberHidden
+            } else {
+                phoneNumber = formatPhoneNumber(context: context, number: peer.phone ?? "")
+            }
             items[.phone]!.append(PeerInfoScreenInfoItem(id: 0, title: presentationData.strings.Settings_CheckPhoneNumberTitle(phoneNumber).string, text: .markdown(presentationData.strings.Settings_CheckPhoneNumberText), linkAction: { link in
                 if case .tap = link {
                     interaction.openFaq(presentationData.strings.Settings_CheckPhoneNumberFAQAnchor)
@@ -235,7 +240,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
     items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_PrivacySettings, icon: PresentationResourcesSettings.security, action: {
         interaction.openSettings(.privacyAndSecurity)
     }))
-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 7, text: "Настройки Bogram", icon: PresentationResourcesSettings.premium, action: {
+    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 7, text: "\u{41D}\u{430}\u{441}\u{442}\u{440}\u{43E}\u{439}\u{43A}\u{438} Bogram", icon: PresentationResourcesSettings.premium, action: {
         interaction.openSettings(.bogram)
     }))
     items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.Settings_ChatSettings, icon: PresentationResourcesSettings.dataAndStorage, action: {
@@ -426,7 +431,13 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
     }))
     
     if let user = data.peer as? TelegramUser {
-        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""), text: presentationData.strings.Settings_PhoneNumber, action: {
+        let phoneValue: String
+        if BogramSettings.hidePhoneNumbers {
+            phoneValue = presentationData.strings.ContactInfo_PhoneNumberHidden
+        } else {
+            phoneValue = user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""
+        }
+        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(phoneValue), text: presentationData.strings.Settings_PhoneNumber, action: {
             interaction.openSettings(.phoneNumber)
         }))
     }
