@@ -222,9 +222,9 @@ extension PeerInfoScreenNode {
                 guard let strongSelf = self else {
                     return
                 }
-                var maximumAvailableAccounts: Int = maximumNumberOfAccounts
+                let maximumAvailableAccounts: Int = maximumNumberOfAccounts
                 var count: Int = 1
-                for (accountContext, peer, _) in accountsAndPeers {
+                for (accountContext, _, _) in accountsAndPeers {
                     if !accountContext.account.testingEnvironment {
                         count += 1
                     }
