@@ -1579,7 +1579,7 @@ public func privacyAndSecurityController(
         }
     }
     
-    let signal = combineLatest(
+    let signal: Signal<(ItemListControllerState, (ItemListNodeState, PrivacyAndSecurityControllerArguments)), NoError> = combineLatest(
         queue: .mainQueue(),
         context.sharedContext.presentationData,
         statePromise.get(),
@@ -1596,7 +1596,7 @@ public func privacyAndSecurityController(
         context.engine.data.subscribe(TelegramEngine.EngineData.Item.Peer.Peer(id: context.account.peerId)),
         loginEmail
     )
-    |> map { presentationData, state, privacySettings, noticeView, sharedData, recentPeers, blockedPeersState, activeWebsitesState, accessChallengeData, twoStepAuth, passkeys, appConfiguration, accountPeer, loginEmail -> (ItemListControllerState, (ItemListNodeState, Any)) in
+    |> map { presentationData, state, privacySettings, noticeView, sharedData, recentPeers, blockedPeersState, activeWebsitesState, accessChallengeData, twoStepAuth, passkeys, appConfiguration, accountPeer, loginEmail -> (ItemListControllerState, (ItemListNodeState, PrivacyAndSecurityControllerArguments)) in
         var canAutoarchive = false
         if let data = appConfiguration.data, let hasAutoarchive = data["autoarchive_setting_available"] as? Bool {
             canAutoarchive = hasAutoarchive
