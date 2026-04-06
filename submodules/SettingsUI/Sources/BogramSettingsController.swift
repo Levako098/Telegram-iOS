@@ -1,0 +1,189 @@
+import Foundation
+import Display
+import SwiftSignalKit
+import TelegramCore
+import TelegramPresentationData
+import ItemListUI
+import PresentationDataUtils
+import AccountContext
+
+private final class BogramSettingsControllerArguments {
+    let toggleKeepDeletedMessages: (Bool) -> Void
+    let toggleLocalPremium: (Bool) -> Void
+    
+    init(
+        toggleKeepDeletedMessages: @escaping (Bool) -> Void,
+        toggleLocalPremium: @escaping (Bool) -> Void
+    ) {
+        self.toggleKeepDeletedMessages = toggleKeepDeletedMessages
+        self.toggleLocalPremium = toggleLocalPremium
+    }
+}
+
+private enum BogramSettingsSection: Int32 {
+    case antiDelete
+    case premium
+}
+
+private enum BogramSettingsEntry: ItemListNodeEntry {
+    case keepDeletedHeader
+    case keepDeletedValue(Bool)
+    case keepDeletedInfo
+    case localPremiumHeader
+    case localPremiumValue(Bool)
+    case localPremiumInfo
+    
+    var section: ItemListSectionId {
+        switch self {
+        case .keepDeletedHeader, .keepDeletedValue, .keepDeletedInfo:
+            return BogramSettingsSection.antiDelete.rawValue
+        case .localPremiumHeader, .localPremiumValue, .localPremiumInfo:
+            return BogramSettingsSection.premium.rawValue
+        }
+    }
+    
+    var stableId: Int32 {
+        switch self {
+        case .keepDeletedHeader:
+            return 0
+        case .keepDeletedValue:
+            return 1
+        case .keepDeletedInfo:
+            return 2
+        case .localPremiumHeader:
+            return 3
+        case .localPremiumValue:
+            return 4
+        case .localPremiumInfo:
+            return 5
+        }
+    }
+    
+    static func <(lhs: BogramSettingsEntry, rhs: BogramSettingsEntry) -> Bool {
+        return lhs.stableId < rhs.stableId
+    }
+    
+    func item(presentationData: ItemListPresentationData, arguments: Any) -> ListViewItem {
+        let arguments = arguments as! BogramSettingsControllerArguments
+        switch self {
+        case .keepDeletedHeader:
+            return ItemListSectionHeaderItem(
+                presentationData: presentationData,
+                text: "\u{421}\u{41E}\u{425}\u{420}\u{410}\u{41D}\u{415}\u{41D}\u{418}\u{415} \u{421}\u{41E}\u{41E}\u{411}\u{429}\u{415}\u{41D}\u{418}\u{419}",
+                sectionId: self.section
+            )
+        case let .keepDeletedValue(value):
+            return ItemListSwitchItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "\u{421}\u{43E}\u{445}\u{440}\u{430}\u{43D}\u{44F}\u{442}\u{44C} \u{443}\u{434}\u{430}\u{43B}\u{435}\u{43D}\u{43D}\u{44B}\u{435} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{44F}",
+                value: value,
+                sectionId: self.section,
+                style: .blocks,
+                updated: { value in
+                    arguments.toggleKeepDeletedMessages(value)
+                }
+            )
+        case .keepDeletedInfo:
+            return ItemListTextItem(
+                presentationData: presentationData,
+                text: .plain("\u{415}\u{441}\u{43B}\u{438} \u{441}\u{43E}\u{431}\u{435}\u{441}\u{435}\u{434}\u{43D}\u{438}\u{43A} \u{443}\u{434}\u{430}\u{43B}\u{438}\u{442} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{435}, Bogram \u{43E}\u{441}\u{442}\u{430}\u{432}\u{438}\u{442} \u{435}\u{433}\u{43E} \u{443} \u{442}\u{435}\u{431}\u{44F} \u{43B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{43E}. \u{41D}\u{430} \u{434}\u{440}\u{443}\u{433}\u{438}\u{445} \u{443}\u{441}\u{442}\u{440}\u{43E}\u{439}\u{441}\u{442}\u{432}\u{430}\u{445} \u{438} \u{443} \u{434}\u{440}\u{443}\u{433}\u{438}\u{445} \u{43F}\u{43E}\u{43B}\u{44C}\u{437}\u{43E}\u{432}\u{430}\u{442}\u{435}\u{43B}\u{435}\u{439} \u{44D}\u{442}\u{43E} \u{43D}\u{435} \u{43C}\u{435}\u{43D}\u{44F}\u{435}\u{442}\u{441}\u{44F}."),
+                sectionId: self.section
+            )
+        case .localPremiumHeader:
+            return ItemListSectionHeaderItem(
+                presentationData: presentationData,
+                text: "BOGRAM PREMIUM",
+                sectionId: self.section
+            )
+        case let .localPremiumValue(value):
+            return ItemListSwitchItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "\u{41B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{44B}\u{439} Bogram Premium",
+                value: value,
+                sectionId: self.section,
+                style: .blocks,
+                updated: { value in
+                    arguments.toggleLocalPremium(value)
+                }
+            )
+        case .localPremiumInfo:
+            return ItemListTextItem(
+                presentationData: presentationData,
+                text: .plain("\u{412}\u{43A}\u{43B}\u{44E}\u{447}\u{430}\u{435}\u{442} \u{442}\u{43E}\u{43B}\u{44C}\u{43A}\u{43E} \u{43B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{44B}\u{435} \u{43A}\u{43E}\u{441}\u{43C}\u{435}\u{442}\u{438}\u{447}\u{435}\u{441}\u{43A}\u{438}\u{435} \u{44D}\u{444}\u{444}\u{435}\u{43A}\u{442}\u{44B}: premium-\u{431}\u{435}\u{439}\u{434}\u{436} \u{432} \u{442}\u{432}\u{43E}\u{435}\u{43C} \u{43F}\u{440}\u{43E}\u{444}\u{438}\u{43B}\u{435} \u{438} \u{434}\u{43E}\u{441}\u{442}\u{443}\u{43F} \u{43A} premium app icons \u{432} \u{440}\u{430}\u{437}\u{434}\u{435}\u{43B}\u{435} Appearance. \u{414}\u{43B}\u{44F} \u{434}\u{440}\u{443}\u{433}\u{438}\u{445} \u{43F}\u{43E}\u{43B}\u{44C}\u{437}\u{43E}\u{432}\u{430}\u{442}\u{435}\u{43B}\u{435}\u{439} \u{44D}\u{442}\u{43E} \u{43D}\u{435} \u{432}\u{438}\u{434}\u{43D}\u{43E} \u{438} \u{441}\u{435}\u{440}\u{432}\u{435}\u{440}\u{43D}\u{44B}\u{439} Premium \u{43D}\u{435} \u{437}\u{430}\u{43C}\u{435}\u{43D}\u{44F}\u{435}\u{442}."),
+                sectionId: self.section
+            )
+        }
+    }
+}
+
+private struct BogramSettingsControllerState: Equatable {
+    var keepDeletedMessages: Bool
+    var localPremium: Bool
+}
+
+private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [BogramSettingsEntry] {
+    return [
+        .keepDeletedHeader,
+        .keepDeletedValue(state.keepDeletedMessages),
+        .keepDeletedInfo,
+        .localPremiumHeader,
+        .localPremiumValue(state.localPremium),
+        .localPremiumInfo
+    ]
+}
+
+public func bogramSettingsController(context: AccountContext) -> ViewController {
+    let initialState = BogramSettingsControllerState(
+        keepDeletedMessages: BogramSettings.keepDeletedMessages,
+        localPremium: BogramSettings.localPremium
+    )
+    let statePromise = ValuePromise(initialState, ignoreRepeated: true)
+    let stateValue = Atomic(value: initialState)
+    let updateState: ((BogramSettingsControllerState) -> BogramSettingsControllerState) -> Void = { f in
+        statePromise.set(stateValue.modify(f))
+    }
+    
+    let arguments = BogramSettingsControllerArguments(
+        toggleKeepDeletedMessages: { value in
+            BogramSettings.keepDeletedMessages = value
+            updateState { state in
+                var state = state
+                state.keepDeletedMessages = value
+                return state
+            }
+        },
+        toggleLocalPremium: { value in
+            BogramSettings.localPremium = value
+            updateState { state in
+                var state = state
+                state.localPremium = value
+                return state
+            }
+        }
+    )
+    
+    let signal = combineLatest(queue: .mainQueue(),
+        context.sharedContext.presentationData,
+        statePromise.get()
+    )
+    |> map { presentationData, state -> (ItemListControllerState, (ItemListNodeState, Any)) in
+        let controllerState = ItemListControllerState(
+            presentationData: ItemListPresentationData(presentationData),
+            title: .text("\u{41D}\u{430}\u{441}\u{442}\u{440}\u{43E}\u{439}\u{43A}\u{438} Bogram"),
+            leftNavigationButton: nil,
+            rightNavigationButton: nil,
+            backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back)
+        )
+        let listState = ItemListNodeState(
+            presentationData: ItemListPresentationData(presentationData),
+            entries: bogramSettingsEntries(state: state),
+            style: .blocks,
+            animateChanges: true
+        )
+        return (controllerState, (listState, arguments))
+    }
+    
+    return ItemListController(context: context, state: signal)
+}

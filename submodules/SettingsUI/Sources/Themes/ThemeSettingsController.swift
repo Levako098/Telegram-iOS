@@ -623,7 +623,7 @@ public func themeSettingsController(context: AccountContext, focusOnItemTag: The
     }, selectAppIcon: { icon in
         let _ = (context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: context.account.peerId))
         |> deliverOnMainQueue).start(next: { peer in
-            let isPremium = peer?.isPremium ?? false
+            let isPremium = BogramSettings.hasPremium(peer?.isPremium ?? false)
             if icon.isPremium && !isPremium {
                 var replaceImpl: ((ViewController) -> Void)?
                 let controller = PremiumDemoScreen(context: context, subject: .appIcons, source: .other, action: {
@@ -1116,7 +1116,7 @@ public func themeSettingsController(context: AccountContext, focusOnItemTag: The
         let chatSettings = sharedData.entries[ApplicationSpecificSharedDataKeys.chatSettings]?.get(ChatSettings.self) ?? ChatSettings.defaultSettings
         let mediaSettings = sharedData.entries[ApplicationSpecificSharedDataKeys.mediaDisplaySettings]?.get(MediaDisplaySettings.self) ?? MediaDisplaySettings.defaultSettings
         
-        let isPremium = peerView.peers[peerView.peerId]?.isPremium ?? false
+        let isPremium = BogramSettings.hasPremium(peerView.peers[peerView.peerId]?.isPremium ?? false)
         
         let themeReference: PresentationThemeReference
         if presentationData.autoNightModeTriggered {
