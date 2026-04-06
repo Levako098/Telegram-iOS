@@ -201,9 +201,9 @@ public func deleteAccountOptionsController(context: AccountContext, navigationCo
         |> take(1)
         |> deliverOnMainQueue
         ).start(next: { accountAndPeer, accountsAndPeers in
-            var maximumAvailableAccounts: Int = maximumNumberOfAccounts
+            let maximumAvailableAccounts: Int = maximumNumberOfAccounts
             var count: Int = 1
-            for (accountContext, peer, _) in accountsAndPeers {
+            for (accountContext, _, _) in accountsAndPeers {
                 if !accountContext.account.testingEnvironment {
                     count += 1
                 }
