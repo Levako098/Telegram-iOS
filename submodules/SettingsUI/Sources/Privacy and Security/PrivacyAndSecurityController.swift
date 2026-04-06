@@ -1356,13 +1356,6 @@ public func privacyAndSecurityController(
                 return state
             }
         }))
-    }, toggleKeepDeletedMessages: { value in
-        updateState { state in
-            var state = state
-            state.updatingKeepDeletedMessages = value
-            return state
-        }
-        BogramSettings.keepDeletedMessages = value
     }, setupAccountAutoremove: {
         let signal = privacySettingsPromise.get()
         |> take(1)
@@ -1556,6 +1549,13 @@ public func privacyAndSecurityController(
                 }), true)
             }
         }))
+    }, toggleKeepDeletedMessages: { value in
+        updateState { state in
+            var state = state
+            state.updatingKeepDeletedMessages = value
+            return state
+        }
+        BogramSettings.keepDeletedMessages = value
     })
     
     actionsDisposable.add(context.engine.peers.managedUpdatedRecentPeers().start())
