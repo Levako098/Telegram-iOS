@@ -45,8 +45,9 @@ private final class PrivacyAndSecurityControllerArguments {
     let openEmailSettings: (String?) -> Void
     let openMessagePrivacy: () -> Void
     let openGiftsPrivacy: () -> Void
+    let toggleKeepDeletedMessages: (Bool) -> Void
     
-    init(account: Account, openBlockedUsers: @escaping () -> Void, openLastSeenPrivacy: @escaping () -> Void, openGroupsPrivacy: @escaping () -> Void, openVoiceCallPrivacy: @escaping () -> Void, openProfilePhotoPrivacy: @escaping () -> Void, openForwardPrivacy: @escaping () -> Void, openPhoneNumberPrivacy: @escaping () -> Void, openVoiceMessagePrivacy: @escaping () -> Void, openBioPrivacy: @escaping () -> Void, openBirthdayPrivacy: @escaping () -> Void, openSavedMusicPrivacy: @escaping () -> Void, openPasscode: @escaping () -> Void, openTwoStepVerification: @escaping (TwoStepVerificationAccessConfiguration?) -> Void, openPasskeys: @escaping () -> Void, openActiveSessions: @escaping () -> Void, toggleArchiveAndMuteNonContacts: @escaping (Bool) -> Void, setupAccountAutoremove: @escaping () -> Void, setupMessageAutoremove: @escaping () -> Void, openDataSettings: @escaping () -> Void, openEmailSettings: @escaping (String?) -> Void, openMessagePrivacy: @escaping () -> Void, openGiftsPrivacy: @escaping () -> Void) {
+    init(account: Account, openBlockedUsers: @escaping () -> Void, openLastSeenPrivacy: @escaping () -> Void, openGroupsPrivacy: @escaping () -> Void, openVoiceCallPrivacy: @escaping () -> Void, openProfilePhotoPrivacy: @escaping () -> Void, openForwardPrivacy: @escaping () -> Void, openPhoneNumberPrivacy: @escaping () -> Void, openVoiceMessagePrivacy: @escaping () -> Void, openBioPrivacy: @escaping () -> Void, openBirthdayPrivacy: @escaping () -> Void, openSavedMusicPrivacy: @escaping () -> Void, openPasscode: @escaping () -> Void, openTwoStepVerification: @escaping (TwoStepVerificationAccessConfiguration?) -> Void, openPasskeys: @escaping () -> Void, openActiveSessions: @escaping () -> Void, toggleArchiveAndMuteNonContacts: @escaping (Bool) -> Void, setupAccountAutoremove: @escaping () -> Void, setupMessageAutoremove: @escaping () -> Void, openDataSettings: @escaping () -> Void, openEmailSettings: @escaping (String?) -> Void, openMessagePrivacy: @escaping () -> Void, openGiftsPrivacy: @escaping () -> Void, toggleKeepDeletedMessages: @escaping (Bool) -> Void) {
         self.account = account
         self.openBlockedUsers = openBlockedUsers
         self.openLastSeenPrivacy = openLastSeenPrivacy
@@ -70,6 +71,7 @@ private final class PrivacyAndSecurityControllerArguments {
         self.openEmailSettings = openEmailSettings
         self.openMessagePrivacy = openMessagePrivacy
         self.openGiftsPrivacy = openGiftsPrivacy
+        self.toggleKeepDeletedMessages = toggleKeepDeletedMessages
     }
 }
 
@@ -77,6 +79,7 @@ private enum PrivacyAndSecuritySection: Int32 {
     case general
     case privacy
     case autoArchive
+    case bogram
     case account
     case messageAutoremove
     case dataSettings
@@ -87,6 +90,7 @@ public enum PrivacyAndSecurityEntryTag: ItemListItemTag {
     case accountTimeout
     case messageAutoremoveTimeout
     case autoArchive
+    case bogramKeepDeletedMessages
     
     public func isEqual(to other: ItemListItemTag) -> Bool {
         if let other = other as? PrivacyAndSecurityEntryTag, self == other {
@@ -123,6 +127,9 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
     case autoArchiveHeader(String)
     case autoArchive(String, Bool)
     case autoArchiveInfo(String)
+    case bogramHeader(String)
+    case bogramKeepDeletedMessages(String, Bool)
+    case bogramInfo(String)
     case accountHeader(PresentationTheme, String)
     case accountTimeout(PresentationTheme, String, String)
     case accountInfo(PresentationTheme, String)
@@ -141,6 +148,8 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
             return PrivacyAndSecuritySection.privacy.rawValue
         case .autoArchiveHeader, .autoArchive, .autoArchiveInfo:
             return PrivacyAndSecuritySection.autoArchive.rawValue
+        case .bogramHeader, .bogramKeepDeletedMessages, .bogramInfo:
+            return PrivacyAndSecuritySection.bogram.rawValue
         case .accountHeader, .accountTimeout, .accountInfo:
             return PrivacyAndSecuritySection.account.rawValue
         case .dataSettings, .dataSettingsInfo:
@@ -204,16 +213,22 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
                 return 26
             case .autoArchiveInfo:
                 return 27
-            case .accountHeader:
+            case .bogramHeader:
                 return 28
-            case .accountTimeout:
+            case .bogramKeepDeletedMessages:
                 return 29
-            case .accountInfo:
+            case .bogramInfo:
                 return 30
-            case .dataSettings:
+            case .accountHeader:
                 return 31
-            case .dataSettingsInfo:
+            case .accountTimeout:
                 return 32
+            case .accountInfo:
+                return 33
+            case .dataSettings:
+                return 34
+            case .dataSettingsInfo:
+                return 35
         }
     }
     
@@ -369,6 +384,24 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
                 } else {
                     return false
                 }
+            case let .bogramHeader(text):
+                if case .bogramHeader(text) = rhs {
+                    return true
+                } else {
+                    return false
+                }
+            case let .bogramKeepDeletedMessages(lhsText, lhsValue):
+                if case let .bogramKeepDeletedMessages(rhsText, rhsValue) = rhs, lhsText == rhsText, lhsValue == rhsValue {
+                    return true
+                } else {
+                    return false
+                }
+            case let .bogramInfo(text):
+                if case .bogramInfo(text) = rhs {
+                    return true
+                } else {
+                    return false
+                }
             case let .accountHeader(lhsTheme, lhsText):
                 if case let .accountHeader(rhsTheme, rhsText) = rhs, lhsTheme === rhsTheme, lhsText == rhsText {
                     return true
@@ -516,6 +549,14 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
                 }, tag: PrivacyAndSecurityEntryTag.autoArchive)
             case let .autoArchiveInfo(text):
                 return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: self.section)
+            case let .bogramHeader(text):
+                return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: self.section)
+            case let .bogramKeepDeletedMessages(text, value):
+                return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: text, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                    arguments.toggleKeepDeletedMessages(value)
+                }, tag: PrivacyAndSecurityEntryTag.bogramKeepDeletedMessages)
+            case let .bogramInfo(text):
+                return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: self.section)
             case let .accountHeader(_, text):
                 return ItemListSectionHeaderItem(presentationData: presentationData, text: text, sectionId: self.section)
             case let .accountTimeout(_, text, value):
@@ -539,6 +580,7 @@ private struct PrivacyAndSecurityControllerState: Equatable {
     var updatingAutomaticallyArchiveAndMuteNonContacts: Bool? = nil
     var updatingMessageAutoremoveTimeoutValue: Int32? = nil
     var updatingOnlyAllowPremiumNonContacts: Bool? = nil
+    var updatingKeepDeletedMessages: Bool? = nil
 }
 
 private func countForSelectivePeers(_ peers: [PeerId: SelectivePrivacyPeer]) -> Int {
@@ -772,6 +814,11 @@ private func privacyAndSecurityControllerEntries(
         entries.append(.autoArchiveInfo(presentationData.strings.PrivacySettings_AutoArchiveInfo))
     }
     
+    let keepDeletedMessagesValue = state.updatingKeepDeletedMessages ?? BogramSettings.keepDeletedMessages
+    entries.append(.bogramHeader("НАСТРОЙКИ BOGRAM"))
+    entries.append(.bogramKeepDeletedMessages("Сохранять удаленные сообщения", keepDeletedMessagesValue))
+    entries.append(.bogramInfo("Если собеседник удалит сообщение, Bogram оставит его локально у тебя. Это работает только в твоем клиенте и иногда может расходиться с обычной серверной историей."))
+    
     entries.append(.accountHeader(presentationData.theme, presentationData.strings.PrivacySettings_DeleteAccountTitle.uppercased()))
     if let privacySettings = privacySettings {
         let value: Int32
@@ -829,8 +876,9 @@ public func privacyAndSecurityController(
     requestPublicPhotoSetup: ((@escaping (UIImage?) -> Void) -> Void)? = nil,
     requestPublicPhotoRemove: ((@escaping () -> Void) -> Void)? = nil
 ) -> ViewController {
-    let statePromise = ValuePromise(PrivacyAndSecurityControllerState(), ignoreRepeated: true)
-    let stateValue = Atomic(value: PrivacyAndSecurityControllerState())
+    let initialState = PrivacyAndSecurityControllerState(updatingKeepDeletedMessages: BogramSettings.keepDeletedMessages)
+    let statePromise = ValuePromise(initialState, ignoreRepeated: true)
+    let stateValue = Atomic(value: initialState)
     let updateState: ((PrivacyAndSecurityControllerState) -> PrivacyAndSecurityControllerState) -> Void = { f in
         statePromise.set(stateValue.modify { f($0) })
     }
@@ -1308,6 +1356,13 @@ public func privacyAndSecurityController(
                 return state
             }
         }))
+    }, toggleKeepDeletedMessages: { value in
+        updateState { state in
+            var state = state
+            state.updatingKeepDeletedMessages = value
+            return state
+        }
+        BogramSettings.keepDeletedMessages = value
     }, setupAccountAutoremove: {
         let signal = privacySettingsPromise.get()
         |> take(1)
