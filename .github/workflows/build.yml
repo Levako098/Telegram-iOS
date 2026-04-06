@@ -1,20 +1,29 @@
 name: CI
 
 on:
-  push:
-    branches: [ master ]
-
   workflow_dispatch:
+
+concurrency:
+  group: bogram-ios-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: macos-15
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
           fetch-depth: '0'
+
+      - name: Restore Bazel cache
+        uses: actions/cache@v4
+        with:
+          path: ~/telegram-bazel-cache
+          key: ${{ runner.os }}-telegram-bazel-${{ hashFiles('versions.json', 'build-system/**', '**/*.bzl', '**/BUILD', '**/BUILD.bazel', '.gitmodules') }}
+          restore-keys: |
+            ${{ runner.os }}-telegram-bazel-
 
       - name: Set active Xcode path
         run: |
@@ -56,6 +65,7 @@ jobs:
           python3 build-system/Make/ImportCertificates.py --path build-system/fake-codesigning/certs
           python3 -u build-system/Make/Make.py \
             --bazelUserRoot="$BAZEL_USER_ROOT" \
+            --cacheDir="$HOME/telegram-bazel-cache" \
             build \
             --configurationPath="build-system/bogram-unsigned-configuration.json" \
             --codesigningInformationPath=build-system/fake-codesigning \
