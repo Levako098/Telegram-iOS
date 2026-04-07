@@ -11,21 +11,25 @@ private final class BogramSettingsControllerArguments {
     let toggleKeepDeletedMessages: (Bool) -> Void
     let toggleLocalPremium: (Bool) -> Void
     let toggleHidePhoneNumbers: (Bool) -> Void
+    let toggleGhostMode: (Bool) -> Void
     
     init(
         toggleKeepDeletedMessages: @escaping (Bool) -> Void,
         toggleLocalPremium: @escaping (Bool) -> Void,
-        toggleHidePhoneNumbers: @escaping (Bool) -> Void
+        toggleHidePhoneNumbers: @escaping (Bool) -> Void,
+        toggleGhostMode: @escaping (Bool) -> Void
     ) {
         self.toggleKeepDeletedMessages = toggleKeepDeletedMessages
         self.toggleLocalPremium = toggleLocalPremium
         self.toggleHidePhoneNumbers = toggleHidePhoneNumbers
+        self.toggleGhostMode = toggleGhostMode
     }
 }
 
 private enum BogramSettingsSection: Int32 {
     case antiDelete
     case premium
+    case privacy
 }
 
 private enum BogramSettingsEntry: ItemListNodeEntry {
@@ -38,6 +42,8 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
     case hidePhoneHeader
     case hidePhoneValue(Bool)
     case hidePhoneInfo
+    case ghostModeValue(Bool)
+    case ghostModeInfo
     
     var section: ItemListSectionId {
         switch self {
@@ -45,8 +51,8 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
             return BogramSettingsSection.antiDelete.rawValue
         case .localPremiumHeader, .localPremiumValue, .localPremiumInfo:
             return BogramSettingsSection.premium.rawValue
-        case .hidePhoneHeader, .hidePhoneValue, .hidePhoneInfo:
-            return BogramSettingsSection.premium.rawValue
+        case .hidePhoneHeader, .hidePhoneValue, .hidePhoneInfo, .ghostModeValue, .ghostModeInfo:
+            return BogramSettingsSection.privacy.rawValue
         }
     }
     
@@ -70,6 +76,10 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
             return 7
         case .hidePhoneInfo:
             return 8
+        case .ghostModeValue:
+            return 9
+        case .ghostModeInfo:
+            return 10
         }
     }
     
@@ -152,6 +162,24 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
                 text: .plain("\u{421}\u{43A}\u{440}\u{44B}\u{432}\u{430}\u{435}\u{442} \u{43D}\u{43E}\u{43C}\u{435}\u{440}\u{430} \u{432} \u{43F}\u{440}\u{43E}\u{444}\u{438}\u{43B}\u{435} \u{438} \u{432} \u{43E}\u{441}\u{43D}\u{43E}\u{432}\u{43D}\u{44B}\u{445} \u{43C}\u{435}\u{43D}\u{44E} \u{43A}\u{43B}\u{438}\u{435}\u{43D}\u{442}\u{430}."),
                 sectionId: self.section
             )
+        case let .ghostModeValue(value):
+            return ItemListSwitchItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "Ghost Mode",
+                value: value,
+                sectionId: self.section,
+                style: .blocks,
+                updated: { value in
+                    arguments.toggleGhostMode(value)
+                }
+            )
+        case .ghostModeInfo:
+            return ItemListTextItem(
+                presentationData: presentationData,
+                text: .plain("\u{41B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{43E} \u{441}\u{43A}\u{440}\u{44B}\u{432}\u{430}\u{435}\u{442} \u{43F}\u{440}\u{43E}\u{447}\u{442}\u{435}\u{43D}\u{438}\u{435} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439} \u{438} \u{43D}\u{435} \u{434}\u{435}\u{440}\u{436}\u{438}\u{442} \u{43E}\u{43D}\u{43B}\u{430}\u{439}\u{43D} \u{441}\u{442}\u{430}\u{442}\u{443}\u{441}, \u{43F}\u{43E}\u{43A}\u{430} \u{442}\u{44B} \u{43F}\u{440}\u{43E}\u{441}\u{43C}\u{430}\u{442}\u{440}\u{438}\u{432}\u{430}\u{435}\u{448}\u{44C} \u{447}\u{430}\u{442}\u{44B}. \u{41F}\u{440}\u{438} \u{43E}\u{442}\u{43F}\u{440}\u{430}\u{432}\u{43A}\u{435} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439} \u{438}\u{43B}\u{438} \u{434}\u{440}\u{443}\u{433}\u{438}\u{445} \u{441}\u{435}\u{442}\u{435}\u{432}\u{44B}\u{445} \u{434}\u{435}\u{439}\u{441}\u{442}\u{432}\u{438}\u{44F}\u{445} \u{441}\u{435}\u{440}\u{432}\u{435}\u{440} \u{432}\u{441}\u{451} \u{440}\u{430}\u{432}\u{43D}\u{43E} \u{43C}\u{43E}\u{436}\u{435}\u{442} \u{43A}\u{440}\u{430}\u{442}\u{43A}\u{43E} \u{43F}\u{43E}\u{43A}\u{430}\u{437}\u{430}\u{442}\u{44C} \u{430}\u{43A}\u{442}\u{438}\u{432}\u{43D}\u{43E}\u{441}\u{442}\u{44C}."),
+                sectionId: self.section
+            )
         }
     }
 }
@@ -160,6 +188,7 @@ private struct BogramSettingsControllerState: Equatable {
     var keepDeletedMessages: Bool
     var localPremium: Bool
     var hidePhoneNumbers: Bool
+    var ghostMode: Bool
 }
 
 private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [BogramSettingsEntry] {
@@ -172,7 +201,9 @@ private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [Bog
         .localPremiumInfo,
         .hidePhoneHeader,
         .hidePhoneValue(state.hidePhoneNumbers),
-        .hidePhoneInfo
+        .hidePhoneInfo,
+        .ghostModeValue(state.ghostMode),
+        .ghostModeInfo
     ]
 }
 
@@ -180,7 +211,8 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
     let initialState = BogramSettingsControllerState(
         keepDeletedMessages: BogramSettings.keepDeletedMessages,
         localPremium: BogramSettings.localPremium,
-        hidePhoneNumbers: BogramSettings.hidePhoneNumbers
+        hidePhoneNumbers: BogramSettings.hidePhoneNumbers,
+        ghostMode: BogramSettings.ghostMode
     )
     let statePromise = ValuePromise(initialState, ignoreRepeated: true)
     let stateValue = Atomic(value: initialState)
@@ -210,6 +242,14 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
             updateState { state in
                 var state = state
                 state.hidePhoneNumbers = value
+                return state
+            }
+        },
+        toggleGhostMode: { value in
+            BogramSettings.ghostMode = value
+            updateState { state in
+                var state = state
+                state.ghostMode = value
                 return state
             }
         }

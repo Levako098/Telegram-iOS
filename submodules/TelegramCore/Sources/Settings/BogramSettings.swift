@@ -5,6 +5,7 @@ public enum BogramSettings {
     private static let keepDeletedMessagesKey = "bogram.keepDeletedMessages"
     private static let localPremiumKey = "bogram.localPremium"
     private static let hidePhoneNumbersKey = "bogram.hidePhoneNumbers"
+    private static let ghostModeKey = "bogram.ghostMode"
     private static let deletedMessageIdsKey = "bogram.deletedMessageIds"
 
     public static var keepDeletedMessages: Bool {
@@ -35,6 +36,15 @@ public enum BogramSettings {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: hidePhoneNumbersKey)
+        }
+    }
+
+    public static var ghostMode: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: ghostModeKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: ghostModeKey)
         }
     }
 
