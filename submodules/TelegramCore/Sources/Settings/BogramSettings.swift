@@ -14,8 +14,10 @@ public enum BogramSettings {
     private static let localPremiumKey = "bogram.localPremium"
     private static let hidePhoneNumbersKey = "bogram.hidePhoneNumbers"
     private static let ghostModeKey = "bogram.ghostMode"
+    private static let privacyModeKey = "bogram.privacyMode"
     private static let hideStoriesKey = "bogram.hideStories"
     private static let removeAdsKey = "bogram.removeAds"
+    private static let cleanTelegramKey = "bogram.cleanTelegram"
     private static let deletedMessageIdsKey = "bogram.deletedMessageIds"
     private static let deletedMessagesJournalKey = "bogram.deletedMessagesJournal"
 
@@ -43,7 +45,7 @@ public enum BogramSettings {
 
     public static var hidePhoneNumbers: Bool {
         get {
-            return UserDefaults.standard.bool(forKey: hidePhoneNumbersKey)
+            return UserDefaults.standard.bool(forKey: hidePhoneNumbersKey) || privacyMode
         }
         set {
             UserDefaults.standard.set(newValue, forKey: hidePhoneNumbersKey)
@@ -52,16 +54,25 @@ public enum BogramSettings {
 
     public static var ghostMode: Bool {
         get {
-            return UserDefaults.standard.bool(forKey: ghostModeKey)
+            return UserDefaults.standard.bool(forKey: ghostModeKey) || privacyMode
         }
         set {
             UserDefaults.standard.set(newValue, forKey: ghostModeKey)
         }
     }
 
+    public static var privacyMode: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: privacyModeKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: privacyModeKey)
+        }
+    }
+
     public static var hideStories: Bool {
         get {
-            return UserDefaults.standard.bool(forKey: hideStoriesKey)
+            return UserDefaults.standard.bool(forKey: hideStoriesKey) || cleanTelegram
         }
         set {
             UserDefaults.standard.set(newValue, forKey: hideStoriesKey)
@@ -70,10 +81,22 @@ public enum BogramSettings {
 
     public static var removeAds: Bool {
         get {
-            return UserDefaults.standard.bool(forKey: removeAdsKey)
+            return UserDefaults.standard.bool(forKey: removeAdsKey) || cleanTelegram
         }
         set {
             UserDefaults.standard.set(newValue, forKey: removeAdsKey)
+        }
+    }
+
+    public static var cleanTelegram: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: cleanTelegramKey) == nil {
+                return true
+            }
+            return UserDefaults.standard.bool(forKey: cleanTelegramKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: cleanTelegramKey)
         }
     }
 
