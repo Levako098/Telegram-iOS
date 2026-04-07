@@ -3,6 +3,9 @@ name: CI
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: bogram-ios-${{ github.ref }}
   cancel-in-progress: true
