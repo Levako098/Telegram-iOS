@@ -33,6 +33,10 @@ jobs:
           XCODE_VERSION=$(cat versions.json | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["xcode"]);')
           sudo xcode-select -s /Applications/Xcode_$XCODE_VERSION.app/Contents/Developer
 
+      - name: Install Metal Toolchain
+        run: |
+          sudo xcodebuild -downloadComponent MetalToolchain || true
+
       - name: Create canonical source directory
         run: |
           set -x
