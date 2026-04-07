@@ -6480,7 +6480,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
             self.canReadHistory.get(),
             self.hasBrowserOrAppInFront.get()
         ) |> map { inForeground, globallyEnabled, hasBrowserOrWebAppInFront in
-            return inForeground && globallyEnabled && !hasBrowserOrWebAppInFront
+            return inForeground && globallyEnabled && !hasBrowserOrWebAppInFront && !BogramSettings.ghostMode
         } |> deliverOnMainQueue).startStrict(next: { [weak self] value in
             if let strongSelf = self, strongSelf.canReadHistoryValue != value {
                 strongSelf.canReadHistoryValue = value
