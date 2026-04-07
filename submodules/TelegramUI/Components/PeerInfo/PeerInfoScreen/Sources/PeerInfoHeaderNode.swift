@@ -2758,8 +2758,9 @@ final class PeerInfoHeaderNode: ASDisplayNode {
             }()
 
             let developerBadgeLabel = self.developerBadgeLabel!
-            developerBadgeView.backgroundColor = developerBadgeBackgroundColor(isOverlay: isOverlay, presentationData: presentationData)
-            developerBadgeLabel.textColor = developerBadgeTextColor(isOverlay: isOverlay, presentationData: presentationData)
+            let developerBadgeIsOverlay = self.isAvatarExpanded || hasBackground
+            developerBadgeView.backgroundColor = developerBadgeBackgroundColor(isOverlay: developerBadgeIsOverlay, presentationData: presentationData)
+            developerBadgeLabel.textColor = developerBadgeTextColor(isOverlay: developerBadgeIsOverlay, presentationData: presentationData)
             developerBadgeLabel.text = "\u{2708} \u{420}\u{430}\u{437}\u{440}\u{430}\u{431}\u{43E}\u{442}\u{447}\u{438}\u{43A} \u{43C}\u{43E}\u{434}\u{438}\u{444}\u{438}\u{43A}\u{430}\u{446}\u{438}\u{438}"
             developerBadgeLabel.sizeToFit()
 
