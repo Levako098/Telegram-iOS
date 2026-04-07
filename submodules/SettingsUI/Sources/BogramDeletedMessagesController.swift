@@ -60,12 +60,12 @@ private enum BogramDeletedMessagesEntry: ItemListNodeEntry {
                 label: label,
                 text: entry.text,
                 style: .blocks,
-                labelColor: .secondary,
-                textColor: .primary,
-                enabledEntityTypes: [.url],
+                enabledEntityTypes: [],
                 multiline: true,
+                selected: nil,
                 sectionId: self.section,
-                action: nil
+                action: nil,
+                tag: nil
             )
         }
     }
