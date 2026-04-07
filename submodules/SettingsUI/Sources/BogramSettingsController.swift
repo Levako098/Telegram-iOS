@@ -12,17 +12,26 @@ private final class BogramSettingsControllerArguments {
     let toggleLocalPremium: (Bool) -> Void
     let toggleHidePhoneNumbers: (Bool) -> Void
     let toggleGhostMode: (Bool) -> Void
+    let toggleHideStories: (Bool) -> Void
+    let toggleRemoveAds: (Bool) -> Void
+    let openDeletedJournal: () -> Void
     
     init(
         toggleKeepDeletedMessages: @escaping (Bool) -> Void,
         toggleLocalPremium: @escaping (Bool) -> Void,
         toggleHidePhoneNumbers: @escaping (Bool) -> Void,
-        toggleGhostMode: @escaping (Bool) -> Void
+        toggleGhostMode: @escaping (Bool) -> Void,
+        toggleHideStories: @escaping (Bool) -> Void,
+        toggleRemoveAds: @escaping (Bool) -> Void,
+        openDeletedJournal: @escaping () -> Void
     ) {
         self.toggleKeepDeletedMessages = toggleKeepDeletedMessages
         self.toggleLocalPremium = toggleLocalPremium
         self.toggleHidePhoneNumbers = toggleHidePhoneNumbers
         self.toggleGhostMode = toggleGhostMode
+        self.toggleHideStories = toggleHideStories
+        self.toggleRemoveAds = toggleRemoveAds
+        self.openDeletedJournal = openDeletedJournal
     }
 }
 
@@ -30,11 +39,13 @@ private enum BogramSettingsSection: Int32 {
     case antiDelete
     case premium
     case privacy
+    case interface
 }
 
 private enum BogramSettingsEntry: ItemListNodeEntry {
     case keepDeletedHeader
     case keepDeletedValue(Bool)
+    case deletedJournal
     case keepDeletedInfo
     case localPremiumHeader
     case localPremiumValue(Bool)
@@ -44,15 +55,21 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
     case hidePhoneInfo
     case ghostModeValue(Bool)
     case ghostModeInfo
+    case hideStoriesHeader
+    case hideStoriesValue(Bool)
+    case removeAdsValue(Bool)
+    case interfaceInfo
     
     var section: ItemListSectionId {
         switch self {
-        case .keepDeletedHeader, .keepDeletedValue, .keepDeletedInfo:
+        case .keepDeletedHeader, .keepDeletedValue, .deletedJournal, .keepDeletedInfo:
             return BogramSettingsSection.antiDelete.rawValue
         case .localPremiumHeader, .localPremiumValue, .localPremiumInfo:
             return BogramSettingsSection.premium.rawValue
         case .hidePhoneHeader, .hidePhoneValue, .hidePhoneInfo, .ghostModeValue, .ghostModeInfo:
             return BogramSettingsSection.privacy.rawValue
+        case .hideStoriesHeader, .hideStoriesValue, .removeAdsValue, .interfaceInfo:
+            return BogramSettingsSection.interface.rawValue
         }
     }
     
@@ -62,24 +79,34 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
             return 0
         case .keepDeletedValue:
             return 1
-        case .keepDeletedInfo:
+        case .deletedJournal:
             return 2
-        case .localPremiumHeader:
+        case .keepDeletedInfo:
             return 3
-        case .localPremiumValue:
+        case .localPremiumHeader:
             return 4
-        case .localPremiumInfo:
+        case .localPremiumValue:
             return 5
-        case .hidePhoneHeader:
+        case .localPremiumInfo:
             return 6
-        case .hidePhoneValue:
+        case .hidePhoneHeader:
             return 7
-        case .hidePhoneInfo:
+        case .hidePhoneValue:
             return 8
-        case .ghostModeValue:
+        case .hidePhoneInfo:
             return 9
-        case .ghostModeInfo:
+        case .ghostModeValue:
             return 10
+        case .ghostModeInfo:
+            return 11
+        case .hideStoriesHeader:
+            return 12
+        case .hideStoriesValue:
+            return 13
+        case .removeAdsValue:
+            return 14
+        case .interfaceInfo:
+            return 15
         }
     }
     
@@ -106,6 +133,19 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
                 style: .blocks,
                 updated: { value in
                     arguments.toggleKeepDeletedMessages(value)
+                }
+            )
+        case .deletedJournal:
+            return ItemListDisclosureItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "\u{416}\u{443}\u{440}\u{43D}\u{430}\u{43B} \u{443}\u{434}\u{430}\u{43B}\u{435}\u{43D}\u{43D}\u{44B}\u{445} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439}",
+                label: "",
+                sectionId: self.section,
+                style: .blocks,
+                disclosureStyle: .arrow,
+                action: {
+                    arguments.openDeletedJournal()
                 }
             )
         case .keepDeletedInfo:
@@ -180,6 +220,42 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
                 text: .plain("\u{41B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{43E} \u{441}\u{43A}\u{440}\u{44B}\u{432}\u{430}\u{435}\u{442} \u{43F}\u{440}\u{43E}\u{447}\u{442}\u{435}\u{43D}\u{438}\u{435} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439} \u{438} \u{43D}\u{435} \u{434}\u{435}\u{440}\u{436}\u{438}\u{442} \u{43E}\u{43D}\u{43B}\u{430}\u{439}\u{43D} \u{441}\u{442}\u{430}\u{442}\u{443}\u{441}, \u{43F}\u{43E}\u{43A}\u{430} \u{442}\u{44B} \u{43F}\u{440}\u{43E}\u{441}\u{43C}\u{430}\u{442}\u{440}\u{438}\u{432}\u{430}\u{435}\u{448}\u{44C} \u{447}\u{430}\u{442}\u{44B}. \u{41F}\u{440}\u{438} \u{43E}\u{442}\u{43F}\u{440}\u{430}\u{432}\u{43A}\u{435} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439} \u{438}\u{43B}\u{438} \u{434}\u{440}\u{443}\u{433}\u{438}\u{445} \u{441}\u{435}\u{442}\u{435}\u{432}\u{44B}\u{445} \u{434}\u{435}\u{439}\u{441}\u{442}\u{432}\u{438}\u{44F}\u{445} \u{441}\u{435}\u{440}\u{432}\u{435}\u{440} \u{432}\u{441}\u{451} \u{440}\u{430}\u{432}\u{43D}\u{43E} \u{43C}\u{43E}\u{436}\u{435}\u{442} \u{43A}\u{440}\u{430}\u{442}\u{43A}\u{43E} \u{43F}\u{43E}\u{43A}\u{430}\u{437}\u{430}\u{442}\u{44C} \u{430}\u{43A}\u{442}\u{438}\u{432}\u{43D}\u{43E}\u{441}\u{442}\u{44C}."),
                 sectionId: self.section
             )
+        case .hideStoriesHeader:
+            return ItemListSectionHeaderItem(
+                presentationData: presentationData,
+                text: "\u{418}\u{41D}\u{422}\u{415}\u{420}\u{424}\u{415}\u{419}\u{421}",
+                sectionId: self.section
+            )
+        case let .hideStoriesValue(value):
+            return ItemListSwitchItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "\u{421}\u{43A}\u{440}\u{44B}\u{442}\u{44C} \u{438}\u{441}\u{442}\u{43E}\u{440}\u{438}\u{438}",
+                value: value,
+                sectionId: self.section,
+                style: .blocks,
+                updated: { value in
+                    arguments.toggleHideStories(value)
+                }
+            )
+        case let .removeAdsValue(value):
+            return ItemListSwitchItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "\u{423}\u{431}\u{440}\u{430}\u{442}\u{44C} \u{440}\u{435}\u{43A}\u{43B}\u{430}\u{43C}\u{443}",
+                value: value,
+                sectionId: self.section,
+                style: .blocks,
+                updated: { value in
+                    arguments.toggleRemoveAds(value)
+                }
+            )
+        case .interfaceInfo:
+            return ItemListTextItem(
+                presentationData: presentationData,
+                text: .plain("\u{421}\u{43A}\u{440}\u{44B}\u{432}\u{430}\u{435}\u{442} \u{438}\u{441}\u{442}\u{43E}\u{440}\u{438}\u{438} \u{432} \u{441}\u{43F}\u{438}\u{441}\u{43A}\u{435} \u{447}\u{430}\u{442}\u{43E}\u{432} \u{438} \u{43E}\u{442}\u{43A}\u{43B}\u{44E}\u{447}\u{430}\u{435}\u{442} \u{43B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{44B}\u{435} \u{440}\u{435}\u{43A}\u{43B}\u{430}\u{43C}\u{43D}\u{44B}\u{435} \u{43F}\u{440}\u{43E}\u{43C}\u{43E}-\u{431}\u{43B}\u{43E}\u{43A}\u{438} \u{438} \u{43F}\u{43E}\u{434}\u{441}\u{43A}\u{430}\u{437}\u{43A}\u{438}."),
+                sectionId: self.section
+            )
         }
     }
 }
@@ -189,12 +265,15 @@ private struct BogramSettingsControllerState: Equatable {
     var localPremium: Bool
     var hidePhoneNumbers: Bool
     var ghostMode: Bool
+    var hideStories: Bool
+    var removeAds: Bool
 }
 
 private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [BogramSettingsEntry] {
     return [
         .keepDeletedHeader,
         .keepDeletedValue(state.keepDeletedMessages),
+        .deletedJournal,
         .keepDeletedInfo,
         .localPremiumHeader,
         .localPremiumValue(state.localPremium),
@@ -203,7 +282,11 @@ private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [Bog
         .hidePhoneValue(state.hidePhoneNumbers),
         .hidePhoneInfo,
         .ghostModeValue(state.ghostMode),
-        .ghostModeInfo
+        .ghostModeInfo,
+        .hideStoriesHeader,
+        .hideStoriesValue(state.hideStories),
+        .removeAdsValue(state.removeAds),
+        .interfaceInfo
     ]
 }
 
@@ -212,7 +295,9 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
         keepDeletedMessages: BogramSettings.keepDeletedMessages,
         localPremium: BogramSettings.localPremium,
         hidePhoneNumbers: BogramSettings.hidePhoneNumbers,
-        ghostMode: BogramSettings.ghostMode
+        ghostMode: BogramSettings.ghostMode,
+        hideStories: BogramSettings.hideStories,
+        removeAds: BogramSettings.removeAds
     )
     let statePromise = ValuePromise(initialState, ignoreRepeated: true)
     let stateValue = Atomic(value: initialState)
@@ -220,6 +305,8 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
         statePromise.set(stateValue.modify(f))
     }
     
+    var pushControllerImpl: ((ViewController) -> Void)?
+
     let arguments = BogramSettingsControllerArguments(
         toggleKeepDeletedMessages: { value in
             BogramSettings.keepDeletedMessages = value
@@ -255,6 +342,26 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
                 state.ghostMode = value
                 return state
             }
+        },
+        toggleHideStories: { value in
+            BogramSettings.hideStories = value
+            updateState { state in
+                var state = state
+                state.hideStories = value
+                return state
+            }
+        },
+        toggleRemoveAds: { value in
+            BogramSettings.removeAds = value
+            updateState { state in
+                var state = state
+                state.removeAds = value
+                return state
+            }
+        },
+        openDeletedJournal: {
+            let controller = bogramDeletedMessagesController(context: context)
+            pushControllerImpl?(controller)
         }
     )
     
@@ -279,5 +386,9 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
         return (controllerState, (listState, arguments))
     }
     
-    return ItemListController(context: context, state: signal)
+    let controller = ItemListController(context: context, state: signal)
+    pushControllerImpl = { [weak controller] c in
+        (controller?.navigationController as? NavigationController)?.pushViewController(c)
+    }
+    return controller
 }

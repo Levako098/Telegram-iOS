@@ -14,6 +14,7 @@ import ShareController
 import TranslateUI
 import TelegramNotices
 import AlertComponent
+import AlertUI
 
 extension PeerInfoScreenNode {
     func performButtonAction(key: PeerInfoHeaderButtonKey, buttonNode: PeerInfoHeaderButtonNode?, gesture: ContextGesture?) {
@@ -389,6 +390,36 @@ extension PeerInfoScreenNode {
                     controller.presentInGlobalOverlay(contextController)
                 }
             }
+        case .stats:
+            guard let peer = self.data?.peer else {
+                return
+            }
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            let _ = (self.context.account.postbox.transaction { transaction -> (Int, Int, Int, String) in
+                let allMessages = transaction.searchMessages(peerId: peer.id, query: "", tags: nil)
+                let totalMessages = allMessages.count
+                let mediaCount = Int(transaction.getMessageTagSummary(peerId: peer.id, threadId: nil, tagMask: .photoOrVideo, namespace: Namespaces.Message.Cloud, customTag: nil)?.count ?? 0)
+                let voiceCount = Int(transaction.getMessageTagSummary(peerId: peer.id, threadId: nil, tagMask: .voiceOrInstantVideo, namespace: Namespaces.Message.Cloud, customTag: nil)?.count ?? 0)
+                let firstTimestamp = allMessages.map(\.timestamp).min()
+                let firstDialogDate: String
+                if let firstTimestamp {
+                    firstDialogDate = formatter.string(from: Date(timeIntervalSince1970: TimeInterval(firstTimestamp)))
+                } else {
+                    firstDialogDate = "Unknown"
+                }
+                return (totalMessages, mediaCount, voiceCount, firstDialogDate)
+            }
+            |> deliverOnMainQueue).startStandalone(next: { [weak self] totalMessages, mediaCount, voiceCount, firstDialogDate in
+                guard let self else {
+                    return
+                }
+        let text = "Первый диалог: \(firstDialogDate)\nСообщений: \(totalMessages)\nМедиа: \(mediaCount)\nГолосовых: \(voiceCount)"
+        self.controller?.present(textAlertController(context: self.context, title: "Статистика чата", text: text, actions: [
+            TextAlertAction(type: .defaultAction, title: self.presentationData.strings.Common_OK, action: {})
+        ]), in: .window(.root))
+            })
         case .more:
             guard let data = self.data, let peer = data.peer, let chatPeer = data.chatPeer else {
                 return

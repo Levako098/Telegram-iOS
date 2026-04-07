@@ -1488,6 +1488,9 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
                                 self.chatListDisplayNode.mainContainerNode.currentItemNode.clearHighlightAnimated(true)
                                 
                                 if let promoInfo = promoInfo {
+                                    if BogramSettings.removeAds {
+                                        return
+                                    }
                                     switch promoInfo {
                                     case .proxy:
                                         let _ = (ApplicationSpecificNotice.getProxyAdsAcknowledgment(accountManager: self.context.sharedContext.accountManager)

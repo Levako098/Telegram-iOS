@@ -2423,6 +2423,7 @@ func peerInfoHeaderButtons(peer: Peer?, cachedData: CachedPeerData?, isOpenedFro
         if isOpenedFromChat {
             result.append(.search)
         }
+        result.append(.stats)
         
         if user.botInfo != nil, let cachedData = cachedData as? CachedUserData, !cachedData.isBlocked {
             result.append(.stop)

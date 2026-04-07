@@ -4411,8 +4411,10 @@ func replayFinalState(
                     }
                 }
             case let .DeleteMessagesWithGlobalIds(ids):
+                let messageIds = transaction.messageIdsForGlobalIds(ids)
+                BogramSettings.logDeletedMessages(transaction: transaction, ids: messageIds)
                 if keepDeletedMessages {
-                    BogramSettings.markDeletedMessageIds(transaction.messageIdsForGlobalIds(ids))
+                    BogramSettings.markDeletedMessageIds(messageIds)
                 } else {
                     var resourceIds: [MediaResourceId] = []
                     transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
@@ -4424,6 +4426,7 @@ func replayFinalState(
                     deletedMessageIds.append(contentsOf: ids.map { .global($0) })
                 }
             case let .DeleteMessages(ids):
+                BogramSettings.logDeletedMessages(transaction: transaction, ids: ids)
                 if keepDeletedMessages {
                     BogramSettings.markDeletedMessageIds(ids)
                 } else {

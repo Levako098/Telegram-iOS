@@ -15,6 +15,7 @@ enum PeerInfoHeaderButtonKey: Hashable {
     case videoCall
     case voiceChat
     case mute
+    case stats
     case more
     case addMember
     case search
@@ -30,6 +31,7 @@ enum PeerInfoHeaderButtonIcon {
     case voiceChat
     case mute
     case unmute
+    case stats
     case more
     case addMember
     case search
@@ -164,6 +166,8 @@ final class PeerInfoHeaderButtonNode: HighlightableButtonNode {
                     imageName = nil
                 case .unmute:
                     imageName = nil
+                case .stats:
+                    imageName = "Peer Info/ButtonSearch"
                 case .more:
                     imageName = nil
                 case .addMember:
@@ -203,6 +207,8 @@ final class PeerInfoHeaderButtonNode: HighlightableButtonNode {
             } else {
                 seekToEnd = true
             }
+        case .stats:
+            animationName = nil
         case .more:
             animationName = "anim_profilemore"
         case .leave:
