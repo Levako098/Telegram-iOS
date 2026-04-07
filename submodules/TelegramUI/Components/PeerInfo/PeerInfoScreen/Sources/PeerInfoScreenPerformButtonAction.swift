@@ -15,6 +15,7 @@ import TranslateUI
 import TelegramNotices
 import AlertComponent
 import AlertUI
+import PresentationDataUtils
 
 extension PeerInfoScreenNode {
     func performButtonAction(key: PeerInfoHeaderButtonKey, buttonNode: PeerInfoHeaderButtonNode?, gesture: ContextGesture?) {
@@ -415,10 +416,7 @@ extension PeerInfoScreenNode {
                 guard let self else {
                     return
                 }
-        let text = "Первый диалог: \(firstDialogDate)\nСообщений: \(totalMessages)\nМедиа: \(mediaCount)\nГолосовых: \(voiceCount)"
-        self.controller?.present(textAlertController(context: self.context, title: "Статистика чата", text: text, actions: [
-            TextAlertAction(type: .defaultAction, title: self.presentationData.strings.Common_OK, action: {})
-        ]), in: .window(.root))
+        let text = "\u{41F}\u{435}\u{440}\u{432}\u{44B}\u{439} \u{434}\u{438}\u{430}\u{43B}\u{43E}\u{433}: \(firstDialogDate)\n\u{421}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439}: \(totalMessages)\n\u{41C}\u{435}\u{434}\u{438}\u{430}: \(mediaCount)\n\u{413}\u{43E}\u{43B}\u{43E}\u{441}\u{43E}\u{432}\u{44B}\u{445}: \(voiceCount)"`r`n                self.controller?.present(textAlertController(context: self.context, updatedPresentationData: self.controller?.updatedPresentationData, title: "\u{421}\u{442}\u{430}\u{442}\u{438}\u{441}\u{442}\u{438}\u{43A}\u{430} \u{447}\u{430}\u{442}\u{430}", text: text, actions: [`r`n                    TextAlertAction(type: .defaultAction, title: self.presentationData.strings.Common_OK, action: {})`r`n                ]), in: .window(.root))
             })
         case .more:
             guard let data = self.data, let peer = data.peer, let chatPeer = data.chatPeer else {
@@ -1345,3 +1343,4 @@ extension PeerInfoScreenNode {
         }
     }
 }
+
