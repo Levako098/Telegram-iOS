@@ -2727,7 +2727,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                 developerBadgeLabel.sizeToFit()
 
                 let developerBadgeSize = CGSize(width: developerBadgeLabel.bounds.width + 16.0, height: 22.0)
-                let developerBadgeFrame = CGRect(origin: CGPoint(x: 16.0, y: musicFrame.maxY + 8.0), size: developerBadgeSize)
+                let developerBadgeFrame = CGRect(origin: CGPoint(x: 24.0, y: musicFrame.maxY + 6.0), size: developerBadgeSize)
                 developerBadgeView.layer.cornerRadius = developerBadgeFrame.height * 0.5
                 transition.updateFrame(view: developerBadgeView, frame: developerBadgeFrame)
                 developerBadgeLabel.frame = CGRect(origin: CGPoint(x: 8.0, y: floor((developerBadgeFrame.height - developerBadgeLabel.bounds.height) * 0.5)), size: developerBadgeLabel.bounds.size)

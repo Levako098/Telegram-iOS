@@ -247,6 +247,9 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
         },
         toggleGhostMode: { value in
             BogramSettings.ghostMode = value
+            if value {
+                context.account.shouldKeepOnlinePresence.set(.single(false))
+            }
             updateState { state in
                 var state = state
                 state.ghostMode = value

@@ -1637,6 +1637,9 @@ public class Account {
     }
     
     public func updateLocalInputActivity(peerId: PeerActivitySpace, activity: PeerInputActivity, isPresent: Bool) {
+        if BogramSettings.ghostMode {
+            return
+        }
         self.localInputActivityManager.transaction { manager in
             if isPresent {
                 manager.addActivity(chatPeerId: peerId, peerId: self.peerId, activity: activity)
@@ -1647,6 +1650,9 @@ public class Account {
     }
     
     public func acquireLocalInputActivity(peerId: PeerActivitySpace, activity: PeerInputActivity) -> Disposable {
+        if BogramSettings.ghostMode {
+            return EmptyDisposable
+        }
         return self.localInputActivityManager.acquireActivity(chatPeerId: peerId, peerId: self.peerId, activity: activity)
     }
     
