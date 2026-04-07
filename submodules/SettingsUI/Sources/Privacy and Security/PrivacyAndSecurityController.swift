@@ -42,11 +42,12 @@ private final class PrivacyAndSecurityControllerArguments {
     let setupAccountAutoremove: () -> Void
     let setupMessageAutoremove: () -> Void
     let openDataSettings: () -> Void
+    let openBogramSettings: () -> Void
     let openEmailSettings: (String?) -> Void
     let openMessagePrivacy: () -> Void
     let openGiftsPrivacy: () -> Void
     
-    init(account: Account, openBlockedUsers: @escaping () -> Void, openLastSeenPrivacy: @escaping () -> Void, openGroupsPrivacy: @escaping () -> Void, openVoiceCallPrivacy: @escaping () -> Void, openProfilePhotoPrivacy: @escaping () -> Void, openForwardPrivacy: @escaping () -> Void, openPhoneNumberPrivacy: @escaping () -> Void, openVoiceMessagePrivacy: @escaping () -> Void, openBioPrivacy: @escaping () -> Void, openBirthdayPrivacy: @escaping () -> Void, openSavedMusicPrivacy: @escaping () -> Void, openPasscode: @escaping () -> Void, openTwoStepVerification: @escaping (TwoStepVerificationAccessConfiguration?) -> Void, openPasskeys: @escaping () -> Void, openActiveSessions: @escaping () -> Void, toggleArchiveAndMuteNonContacts: @escaping (Bool) -> Void, setupAccountAutoremove: @escaping () -> Void, setupMessageAutoremove: @escaping () -> Void, openDataSettings: @escaping () -> Void, openEmailSettings: @escaping (String?) -> Void, openMessagePrivacy: @escaping () -> Void, openGiftsPrivacy: @escaping () -> Void) {
+    init(account: Account, openBlockedUsers: @escaping () -> Void, openLastSeenPrivacy: @escaping () -> Void, openGroupsPrivacy: @escaping () -> Void, openVoiceCallPrivacy: @escaping () -> Void, openProfilePhotoPrivacy: @escaping () -> Void, openForwardPrivacy: @escaping () -> Void, openPhoneNumberPrivacy: @escaping () -> Void, openVoiceMessagePrivacy: @escaping () -> Void, openBioPrivacy: @escaping () -> Void, openBirthdayPrivacy: @escaping () -> Void, openSavedMusicPrivacy: @escaping () -> Void, openPasscode: @escaping () -> Void, openTwoStepVerification: @escaping (TwoStepVerificationAccessConfiguration?) -> Void, openPasskeys: @escaping () -> Void, openActiveSessions: @escaping () -> Void, toggleArchiveAndMuteNonContacts: @escaping (Bool) -> Void, setupAccountAutoremove: @escaping () -> Void, setupMessageAutoremove: @escaping () -> Void, openDataSettings: @escaping () -> Void, openBogramSettings: @escaping () -> Void, openEmailSettings: @escaping (String?) -> Void, openMessagePrivacy: @escaping () -> Void, openGiftsPrivacy: @escaping () -> Void) {
         self.account = account
         self.openBlockedUsers = openBlockedUsers
         self.openLastSeenPrivacy = openLastSeenPrivacy
@@ -67,6 +68,7 @@ private final class PrivacyAndSecurityControllerArguments {
         self.setupAccountAutoremove = setupAccountAutoremove
         self.setupMessageAutoremove = setupMessageAutoremove
         self.openDataSettings = openDataSettings
+        self.openBogramSettings = openBogramSettings
         self.openEmailSettings = openEmailSettings
         self.openMessagePrivacy = openMessagePrivacy
         self.openGiftsPrivacy = openGiftsPrivacy
@@ -128,6 +130,7 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
     case messageAutoremoveTimeout(PresentationTheme, String, String)
     case messageAutoremoveInfo(PresentationTheme, String)
     case dataSettings(PresentationTheme, String)
+    case bogramSettings(PresentationTheme, String)
     case dataSettingsInfo(PresentationTheme, String)
     
     var section: ItemListSectionId {
@@ -142,7 +145,7 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
             return PrivacyAndSecuritySection.autoArchive.rawValue
         case .accountHeader, .accountTimeout, .accountInfo:
             return PrivacyAndSecuritySection.account.rawValue
-        case .dataSettings, .dataSettingsInfo:
+        case .dataSettings, .bogramSettings, .dataSettingsInfo:
             return PrivacyAndSecuritySection.dataSettings.rawValue
         }
     }
@@ -211,8 +214,10 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
                 return 30
             case .dataSettings:
                 return 31
-            case .dataSettingsInfo:
+            case .bogramSettings:
                 return 32
+            case .dataSettingsInfo:
+                return 33
         }
     }
     
@@ -404,6 +409,12 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
                 } else {
                     return false
                 }
+            case let .bogramSettings(lhsTheme, lhsText):
+                if case let .bogramSettings(rhsTheme, rhsText) = rhs, lhsTheme === rhsTheme, lhsText == rhsText {
+                    return true
+                } else {
+                    return false
+                }
             case let .dataSettingsInfo(lhsTheme, lhsText):
                 if case let .dataSettingsInfo(rhsTheme, rhsText) = rhs, lhsTheme === rhsTheme, lhsText == rhsText {
                     return true
@@ -526,6 +537,10 @@ private enum PrivacyAndSecurityEntry: ItemListNodeEntry {
             case let .dataSettings(_, text):
                 return ItemListDisclosureItem(presentationData: presentationData, systemStyle: .glass, title: text, label: "", sectionId: self.section, style: .blocks, action: {
                     arguments.openDataSettings()
+                })
+            case let .bogramSettings(_, text):
+                return ItemListDisclosureItem(presentationData: presentationData, systemStyle: .glass, title: text, label: "", sectionId: self.section, style: .blocks, action: {
+                    arguments.openBogramSettings()
                 })
             case let .dataSettingsInfo(_, text):
                 return ItemListTextItem(presentationData: presentationData, text: .plain(text), sectionId: self.section)
@@ -787,6 +802,7 @@ private func privacyAndSecurityControllerEntries(
     entries.append(.accountInfo(presentationData.theme, presentationData.strings.PrivacySettings_DeleteAccountHelp))
     
     entries.append(.dataSettings(presentationData.theme, presentationData.strings.PrivacySettings_DataSettings))
+    entries.append(.bogramSettings(presentationData.theme, "\u{41D}\u{430}\u{441}\u{442}\u{440}\u{43E}\u{439}\u{43A}\u{438} Bogram"))
     entries.append(.dataSettingsInfo(presentationData.theme, presentationData.strings.PrivacySettings_DataSettingsHelp))
     
     return entries
@@ -1405,6 +1421,8 @@ public func privacyAndSecurityController(
         }))
     }, openDataSettings: {
         pushControllerImpl?(dataPrivacyController(context: context), true)
+    }, openBogramSettings: {
+        pushControllerImpl?(bogramSettingsController(context: context), true)
     }, openEmailSettings: { emailPattern in
         if let emailPattern, !emailPattern.contains(" ") {
             let presentationData = context.sharedContext.currentPresentationData.with { $0 }
