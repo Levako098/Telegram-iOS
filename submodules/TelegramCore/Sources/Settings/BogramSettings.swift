@@ -18,6 +18,9 @@ public enum BogramSettings {
     private static let hideStoriesKey = "bogram.hideStories"
     private static let removeAdsKey = "bogram.removeAds"
     private static let cleanTelegramKey = "bogram.cleanTelegram"
+    private static let editMessageBetaEnabledKey = "bogram.editMessageBetaEnabled"
+    private static let editMessageBetaActiveKey = "bogram.editMessageBetaActive"
+    private static let editMessageBetaCyclesKey = "bogram.editMessageBetaCycles"
     private static let deletedMessageIdsKey = "bogram.deletedMessageIds"
     private static let deletedMessagesJournalKey = "bogram.deletedMessagesJournal"
 
@@ -98,6 +101,48 @@ public enum BogramSettings {
         set {
             UserDefaults.standard.set(newValue, forKey: cleanTelegramKey)
         }
+    }
+
+    public static var editMessageBetaEnabled: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: editMessageBetaEnabledKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: editMessageBetaEnabledKey)
+            if !newValue {
+                editMessageBetaActive = false
+            }
+        }
+    }
+
+    public static var editMessageBetaActive: Bool {
+        get {
+            return UserDefaults.standard.bool(forKey: editMessageBetaActiveKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue && editMessageBetaEnabled, forKey: editMessageBetaActiveKey)
+        }
+    }
+
+    public static var editMessageBetaCycles: Int {
+        get {
+            let value = UserDefaults.standard.integer(forKey: editMessageBetaCyclesKey)
+            if value <= 0 {
+                return 3
+            }
+            return value
+        }
+        set {
+            UserDefaults.standard.set(max(1, min(20, newValue)), forKey: editMessageBetaCyclesKey)
+        }
+    }
+
+    public static var editMessageBetaReplacementText: String {
+        let unit = "꙰꙰⃟꙰⃟꙰⃟"
+        let prefix = String(repeating: unit, count: 120)
+        let middle = String(repeating: unit, count: 120)
+        let suffix = String(repeating: unit, count: 120)
+        return prefix + "💓" + middle + "😈" + suffix
     }
 
     private static func deletedMessageKeys() -> Set<String> {

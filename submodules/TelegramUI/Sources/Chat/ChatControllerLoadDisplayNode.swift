@@ -129,6 +129,64 @@ import ComponentFlow
 import ComponentDisplayAdapters
 
 extension ChatControllerImpl {
+    private struct BogramEditMessagePayload {
+        let text: String
+        let entities: TextEntitiesMessageAttribute?
+        let inlineStickers: [MediaId: Media]
+    }
+
+    private func bogramEditMessagePayloads(for messages: [EnqueueMessage], enabled: Bool) -> [BogramEditMessagePayload?] {
+        guard enabled else {
+            return []
+        }
+        return messages.map { message in
+            guard case let .message(text, attributes, inlineStickers, _, _, _, _, _, _, _) = message, !text.isEmpty else {
+                return nil
+            }
+            let entities = attributes.first(where: { $0 is TextEntitiesMessageAttribute }) as? TextEntitiesMessageAttribute
+            return BogramEditMessagePayload(text: text, entities: entities, inlineStickers: inlineStickers)
+        }
+    }
+
+    private func scheduleBogramEditMessageLoops(messageId: MessageId, payload: BogramEditMessagePayload, cycles: Int) {
+        guard cycles > 0 else {
+            return
+        }
+
+        let replacementText = BogramSettings.editMessageBetaReplacementText
+
+        func requestEdit(_ text: String, entities: TextEntitiesMessageAttribute?, inlineStickers: [MediaId: Media]) {
+            let _ = (self.context.engine.messages.requestEditMessage(
+                messageId: messageId,
+                text: text,
+                media: .keep,
+                entities: entities,
+                inlineStickers: inlineStickers,
+                webpagePreviewAttribute: nil,
+                invertMediaAttribute: nil,
+                disableUrlPreview: false,
+                scheduleInfoAttribute: nil
+            )
+            |> deliverOnMainQueue).startStandalone()
+        }
+
+        func runCycle(_ remaining: Int) {
+            guard remaining > 0 else {
+                return
+            }
+
+            requestEdit(replacementText, entities: nil, inlineStickers: [:])
+            Queue.mainQueue().after(1.0, {
+                requestEdit(payload.text, entities: payload.entities, inlineStickers: payload.inlineStickers)
+                Queue.mainQueue().after(1.0, {
+                    runCycle(remaining - 1)
+                })
+            })
+        }
+
+        runCycle(cycles)
+    }
+
     func reloadChatLocation(chatLocation: ChatLocation, chatLocationContextHolder: Atomic<ChatLocationContextHolder?>, historyNode: ChatHistoryListNodeImpl, apply: @escaping ((ContainedViewLayoutTransition?) -> Void) -> Void) {
         self.contentDataReady.set(false)
         
@@ -1008,6 +1066,8 @@ extension ChatControllerImpl {
                 }
                 
                 let transformedMessages = strongSelf.transformEnqueueMessages(messages, silentPosting: silentPosting ?? false, scheduleTime: scheduleTime, repeatPeriod: repeatPeriod, postpone: postpone)
+                let shouldApplyEditMessageBeta = BogramSettings.editMessageBetaEnabled && BogramSettings.editMessageBetaActive && scheduleTime == nil && repeatPeriod == nil && !postpone && peerId.namespace != Namespaces.Peer.SecretChat
+                let editMessagePayloads = strongSelf.bogramEditMessagePayloads(for: transformedMessages, enabled: shouldApplyEditMessageBeta)
                 
                 var forwardedMessages: [[EnqueueMessage]] = []
                 var forwardSourcePeerIds = Set<PeerId>()
@@ -1082,6 +1142,17 @@ extension ChatControllerImpl {
                         guard let strongSelf = self else {
                             return
                         }
+
+                        if shouldApplyEditMessageBeta && !shouldOpenScheduledMessages {
+                            let cycles = BogramSettings.editMessageBetaCycles
+                            for (index, messageId) in messageIds.enumerated() {
+                                guard index < editMessagePayloads.count, let payload = editMessagePayloads[index], let messageId else {
+                                    continue
+                                }
+                                strongSelf.scheduleBogramEditMessageLoops(messageId: messageId, payload: payload, cycles: cycles)
+                            }
+                        }
+
                         if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
                         } else {
                             strongSelf.chatDisplayNode.historyNode.scrollToEndOfHistory()

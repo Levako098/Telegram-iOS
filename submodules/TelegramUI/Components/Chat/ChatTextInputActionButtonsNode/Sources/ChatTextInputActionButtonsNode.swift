@@ -147,7 +147,13 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
     public var animatingSendButton = false
     
     public let textNode: ImmediateAnimatedCountLabelNode
-    
+
+    public let editMessageBetaButton: HighlightTrackingButton
+    public let editMessageBetaButtonBackgroundView: GlassBackgroundView
+    private let editMessageBetaButtonIcon: GlassBackgroundView.ContentImageView
+    public var showsEditMessageBetaButton = false
+    public var isEditMessageBetaActive = false
+
     public let expandMediaInputButton: HighlightTrackingButton
     public let expandMediaInputButtonBackgroundView: GlassBackgroundView
     private let expandMediaInputButtonIcon: GlassBackgroundView.ContentImageView
@@ -198,7 +204,17 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
         
         self.textNode = ImmediateAnimatedCountLabelNode()
         self.textNode.isUserInteractionEnabled = false
-        
+
+        self.editMessageBetaButton = HighlightTrackingButton()
+        self.editMessageBetaButtonBackgroundView = GlassBackgroundView()
+        self.editMessageBetaButtonIcon = GlassBackgroundView.ContentImageView()
+        self.editMessageBetaButtonBackgroundView.contentView.addSubview(self.editMessageBetaButtonIcon)
+        self.editMessageBetaButtonBackgroundView.contentView.addSubview(self.editMessageBetaButton)
+        self.editMessageBetaButtonIcon.image = PresentationResourcesChat.chatInputPanelEditIconImage(theme)
+        self.editMessageBetaButtonIcon.tintColor = theme.chat.inputPanel.panelControlColor
+        self.editMessageBetaButtonIcon.setMonochromaticEffect(tintColor: theme.chat.inputPanel.panelControlColor)
+        self.editMessageBetaButtonBackgroundView.alpha = 0.0
+
         self.expandMediaInputButton = HighlightTrackingButton()
         self.expandMediaInputButtonBackgroundView = GlassBackgroundView()
         self.expandMediaInputButtonIcon = GlassBackgroundView.ContentImageView()
@@ -241,6 +257,7 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
         self.sendContainerNode.view.addSubview(self.sendButtonBackgroundView)
         self.sendContainerNode.addSubnode(self.sendButton)
         self.sendContainerNode.addSubnode(self.textNode)
+        self.view.addSubview(self.editMessageBetaButtonBackgroundView)
         self.view.addSubview(self.expandMediaInputButtonBackgroundView)
         
         self.expandMediaInputButton.highligthedChanged = { [weak self] highlighted in
@@ -251,6 +268,17 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
                 self.expandMediaInputButton.layer.animateScale(from: 1.0, to: 0.75, duration: 0.4, removeOnCompletion: false)
             } else if let presentationLayer = self.expandMediaInputButton.layer.presentation() {
                 self.expandMediaInputButton.layer.animateScale(from: CGFloat((presentationLayer.value(forKeyPath: "transform.scale.y") as? NSNumber)?.floatValue ?? 1.0), to: 1.0, duration: 0.25, removeOnCompletion: false)
+            }
+        }
+
+        self.editMessageBetaButton.highligthedChanged = { [weak self] highlighted in
+            guard let self else {
+                return
+            }
+            if highlighted {
+                self.editMessageBetaButton.layer.animateScale(from: 1.0, to: 0.75, duration: 0.4, removeOnCompletion: false)
+            } else if let presentationLayer = self.editMessageBetaButton.layer.presentation() {
+                self.editMessageBetaButton.layer.animateScale(from: CGFloat((presentationLayer.value(forKeyPath: "transform.scale.y") as? NSNumber)?.floatValue ?? 1.0), to: 1.0, duration: 0.25, removeOnCompletion: false)
             }
         }
     }
@@ -274,6 +302,7 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
     
     public func updateTheme(theme: PresentationTheme, wallpaper: TelegramWallpaper) {
         self.micButton.updateTheme(theme: theme)
+        self.editMessageBetaButtonIcon.image = PresentationResourcesChat.chatInputPanelEditIconImage(theme)
         self.expandMediaInputButtonIcon.tintColor = theme.chat.inputPanel.panelControlColor
         self.expandMediaInputButtonIcon.setMonochromaticEffect(tintColor: theme.chat.inputPanel.panelControlColor)
     }
@@ -295,7 +324,8 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
         
         var innerSize = size
         innerSize.width = 40.0 + 3.0 * 2.0
-        
+        let editButtonSpacing: CGFloat = 6.0
+
         let defaultGlassTintColor: GlassBackgroundView.TintColor
         if case .clear = interfaceState.preferredGlassType {
             defaultGlassTintColor = .init(kind: .clear)
@@ -397,12 +427,35 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
                 sendButtonBackgroundEffectLayer?.removeFromSuperlayer()
             })
         }
-        
+
         transition.updateFrame(layer: self.sendButton.layer, frame: CGRect(origin: CGPoint(), size: innerSize))
-        let sendContainerFrame = CGRect(origin: CGPoint(), size: innerSize)
+        let editButtonVisible = self.showsEditMessageBetaButton && !self.sendContainerNode.alpha.isZero
+        let sendContainerOriginX = editButtonVisible ? size.width + editButtonSpacing : 0.0
+        let totalWidth = innerSize.width + (editButtonVisible ? size.width + editButtonSpacing : 0.0)
+        let sendContainerFrame = CGRect(origin: CGPoint(x: sendContainerOriginX, y: 0.0), size: innerSize)
         transition.updatePosition(node: self.sendContainerNode, position: sendContainerFrame.center)
         transition.updateBounds(node: self.sendContainerNode, bounds: CGRect(origin: CGPoint(), size: sendContainerFrame.size))
-        
+
+        let editButtonIconColor: UIColor
+        if self.isEditMessageBetaActive {
+            editButtonIconColor = interfaceState.theme.chat.inputPanel.panelControlAccentColor
+        } else {
+            editButtonIconColor = interfaceState.theme.chat.inputPanel.panelControlColor
+        }
+        self.editMessageBetaButtonIcon.tintColor = editButtonIconColor
+        self.editMessageBetaButtonIcon.setMonochromaticEffect(tintColor: editButtonIconColor)
+
+        transition.updateFrame(view: self.editMessageBetaButton, frame: CGRect(origin: CGPoint(), size: size))
+        transition.updateFrame(view: self.editMessageBetaButtonBackgroundView, frame: CGRect(origin: CGPoint(), size: size))
+        self.editMessageBetaButtonBackgroundView.update(size: size, cornerRadius: size.height * 0.5, isDark: interfaceState.theme.overallDarkAppearance, tintColor: defaultGlassTintColor, isInteractive: true, transition: ComponentTransition(transition))
+        if let image = self.editMessageBetaButtonIcon.image {
+            let iconFrame = CGRect(origin: CGPoint(x: floor((size.width - image.size.width) * 0.5), y: floor((size.height - image.size.height) * 0.5)), size: image.size)
+            self.editMessageBetaButtonIcon.center = iconFrame.center
+            self.editMessageBetaButtonIcon.bounds = CGRect(origin: CGPoint(), size: iconFrame.size)
+        }
+        transition.updateAlpha(layer: self.editMessageBetaButtonBackgroundView.layer, alpha: editButtonVisible ? 1.0 : 0.0)
+        self.editMessageBetaButton.isUserInteractionEnabled = editButtonVisible
+
         let backgroundSize = CGSize(width: innerSize.width, height: 40.0)
         let backgroundFrame = CGRect(origin: CGPoint(x: showTitle ? 5.0 + UIScreenPixel : floorToScreenPixels((size.width - backgroundSize.width) / 2.0), y: floorToScreenPixels((size.height - backgroundSize.height) / 2.0)), size: backgroundSize)
         
@@ -438,7 +491,7 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
             })
         }
         
-        return innerSize
+        return CGSize(width: totalWidth, height: innerSize.height)
     }
     
     public func updateAccessibility() {
@@ -459,11 +512,11 @@ public final class ChatTextInputActionButtonsNode: ASDisplayNode, ChatSendMessag
     }
     
     public func makeCustomContents() -> UIView? {
-        if self.sendButtonHasApplyIcon || self.effectBadgeView != nil {
+        if self.sendButtonHasApplyIcon || self.effectBadgeView != nil || self.showsEditMessageBetaButton {
             let result = UIView()
             result.frame = self.bounds
-            if let copyView = self.sendContainerNode.view.snapshotView(afterScreenUpdates: false) {
-                copyView.frame = self.sendContainerNode.frame
+            if let copyView = self.view.snapshotView(afterScreenUpdates: false) {
+                copyView.frame = self.bounds
                 result.addSubview(copyView)
             }
             return result

@@ -903,6 +903,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         }
         
         self.sendActionButtons.sendButton.addTarget(self, action: #selector(self.sendButtonPressed), forControlEvents: .touchUpInside)
+        self.sendActionButtons.editMessageBetaButton.addTarget(self, action: #selector(self.editMessageBetaButtonPressed), for: .touchUpInside)
         self.sendActionButtons.sendContainerNode.alpha = 0.0
         self.sendActionButtons.updateAccessibility()
         self.mediaActionButtons.updateAccessibility()
@@ -2308,6 +2309,8 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
                     }
                 }
             }
+            self.sendActionButtons.showsEditMessageBetaButton = BogramSettings.editMessageBetaEnabled && presentationInterfaceState.interfaceState.editMessage == nil && presentationInterfaceState.interfaceState.mediaDraftState == nil
+            self.sendActionButtons.isEditMessageBetaActive = BogramSettings.editMessageBetaActive
             sendActionButtonsSize = self.sendActionButtons.updateLayout(size: CGSize(width: 40.0, height: minimalHeight), isMediaInputExpanded: isMediaInputExpanded, showTitle: showTitle, currentMessageEffectId: presentationInterfaceState.interfaceState.sendMessageEffect, transition: transition, interfaceState: presentationInterfaceState)
             mediaActionButtonsSize = self.mediaActionButtons.updateLayout(size: CGSize(width: 40.0, height: minimalHeight), isMediaInputExpanded: isMediaInputExpanded, showTitle: false, currentMessageEffectId: presentationInterfaceState.interfaceState.sendMessageEffect, transition: transition, interfaceState: presentationInterfaceState)
         }
@@ -5356,6 +5359,19 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
         } else {
             self.sendMessage()
         }
+    }
+
+    @objc private func editMessageBetaButtonPressed() {
+        guard BogramSettings.editMessageBetaEnabled else {
+            return
+        }
+        BogramSettings.editMessageBetaActive.toggle()
+        self.hapticFeedback.impact(.light)
+        guard let presentationInterfaceState = self.presentationInterfaceState,
+              let (width, leftInset, rightInset, bottomInset, additionalSideInsets, maxHeight, maxOverlayHeight, metrics, isSecondary, isMediaInputExpanded) = self.validLayout else {
+            return
+        }
+        let _ = self.updateLayout(width: width, leftInset: leftInset, rightInset: rightInset, bottomInset: bottomInset, additionalSideInsets: additionalSideInsets, maxHeight: maxHeight, maxOverlayHeight: maxOverlayHeight, isSecondary: isSecondary, transition: .animated(duration: 0.2, curve: .easeInOut), interfaceState: presentationInterfaceState, metrics: metrics, isMediaInputExpanded: isMediaInputExpanded)
     }
     
     @objc func sendAsAvatarButtonPressed() {

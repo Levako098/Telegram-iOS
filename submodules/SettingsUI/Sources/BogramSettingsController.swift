@@ -16,6 +16,8 @@ private final class BogramSettingsControllerArguments {
     let toggleCleanTelegram: (Bool) -> Void
     let toggleHideStories: (Bool) -> Void
     let toggleRemoveAds: (Bool) -> Void
+    let toggleEditMessageBeta: (Bool) -> Void
+    let cycleEditMessageBetaCycles: () -> Void
     let openDeletedJournal: () -> Void
     
     init(
@@ -27,6 +29,8 @@ private final class BogramSettingsControllerArguments {
         toggleCleanTelegram: @escaping (Bool) -> Void,
         toggleHideStories: @escaping (Bool) -> Void,
         toggleRemoveAds: @escaping (Bool) -> Void,
+        toggleEditMessageBeta: @escaping (Bool) -> Void,
+        cycleEditMessageBetaCycles: @escaping () -> Void,
         openDeletedJournal: @escaping () -> Void
     ) {
         self.toggleKeepDeletedMessages = toggleKeepDeletedMessages
@@ -37,6 +41,8 @@ private final class BogramSettingsControllerArguments {
         self.toggleCleanTelegram = toggleCleanTelegram
         self.toggleHideStories = toggleHideStories
         self.toggleRemoveAds = toggleRemoveAds
+        self.toggleEditMessageBeta = toggleEditMessageBeta
+        self.cycleEditMessageBetaCycles = cycleEditMessageBetaCycles
         self.openDeletedJournal = openDeletedJournal
     }
 }
@@ -45,6 +51,7 @@ private enum BogramSettingsSection: Int32 {
     case antiDelete
     case premium
     case privacy
+    case automation
     case interface
 }
 
@@ -71,6 +78,10 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
     case hideStoriesValue(Bool)
     case removeAdsValue(Bool)
     case interfaceInfo
+    case editMessageBetaHeader
+    case editMessageBetaValue(Bool)
+    case editMessageBetaCycles(Int)
+    case editMessageBetaInfo
     
     var section: ItemListSectionId {
         switch self {
@@ -80,6 +91,8 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
             return BogramSettingsSection.premium.rawValue
         case .privacyModeHeader, .privacyModeValue, .privacyModeInfo, .hidePhoneHeader, .hidePhoneValue, .hidePhoneInfo, .ghostModeValue, .ghostModeInfo:
             return BogramSettingsSection.privacy.rawValue
+        case .editMessageBetaHeader, .editMessageBetaValue, .editMessageBetaCycles, .editMessageBetaInfo:
+            return BogramSettingsSection.automation.rawValue
         case .cleanTelegramHeader, .cleanTelegramValue, .cleanTelegramInfo, .hideStoriesHeader, .hideStoriesValue, .removeAdsValue, .interfaceInfo:
             return BogramSettingsSection.interface.rawValue
         }
@@ -131,6 +144,14 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
             return 20
         case .interfaceInfo:
             return 21
+        case .editMessageBetaHeader:
+            return 22
+        case .editMessageBetaValue:
+            return 23
+        case .editMessageBetaCycles:
+            return 24
+        case .editMessageBetaInfo:
+            return 25
         }
     }
     
@@ -328,6 +349,43 @@ private enum BogramSettingsEntry: ItemListNodeEntry {
                 text: .plain("\u{421}\u{43A}\u{440}\u{44B}\u{432}\u{430}\u{435}\u{442} \u{438}\u{441}\u{442}\u{43E}\u{440}\u{438}\u{438} \u{432} \u{441}\u{43F}\u{438}\u{441}\u{43A}\u{435} \u{447}\u{430}\u{442}\u{43E}\u{432} \u{438} \u{43E}\u{442}\u{43A}\u{43B}\u{44E}\u{447}\u{430}\u{435}\u{442} \u{43B}\u{43E}\u{43A}\u{430}\u{43B}\u{44C}\u{43D}\u{44B}\u{435} \u{440}\u{435}\u{43A}\u{43B}\u{430}\u{43C}\u{43D}\u{44B}\u{435} \u{43F}\u{440}\u{43E}\u{43C}\u{43E}-\u{431}\u{43B}\u{43E}\u{43A}\u{438} \u{438} \u{43F}\u{43E}\u{434}\u{441}\u{43A}\u{430}\u{437}\u{43A}\u{438}."),
                 sectionId: self.section
             )
+        case .editMessageBetaHeader:
+            return ItemListSectionHeaderItem(
+                presentationData: presentationData,
+                text: "EDIT MESSAGE (BETA)",
+                sectionId: self.section
+            )
+        case let .editMessageBetaValue(value):
+            return ItemListSwitchItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "Edit Message (beta)",
+                value: value,
+                sectionId: self.section,
+                style: .blocks,
+                updated: { value in
+                    arguments.toggleEditMessageBeta(value)
+                }
+            )
+        case let .editMessageBetaCycles(value):
+            return ItemListDisclosureItem(
+                presentationData: presentationData,
+                systemStyle: .glass,
+                title: "\u{426}\u{438}\u{43A}\u{43B}\u{43E}\u{432} \u{43D}\u{430} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{435}",
+                label: "\(value)x",
+                sectionId: self.section,
+                style: .blocks,
+                disclosureStyle: .arrow,
+                action: {
+                    arguments.cycleEditMessageBetaCycles()
+                }
+            )
+        case .editMessageBetaInfo:
+            return ItemListTextItem(
+                presentationData: presentationData,
+                text: .plain("\u{41F}\u{43E}\u{441}\u{43B}\u{435} \u{432}\u{43A}\u{43B}\u{44E}\u{447}\u{435}\u{43D}\u{438}\u{44F} \u{432} \u{447}\u{430}\u{442}\u{435} \u{43F}\u{43E}\u{44F}\u{432}\u{438}\u{442}\u{441}\u{44F} \u{43A}\u{43D}\u{43E}\u{43F}\u{43A}\u{430} \u{441} \u{43A}\u{430}\u{440}\u{430}\u{43D}\u{434}\u{430}\u{448}\u{43E}\u{43C} \u{440}\u{44F}\u{434}\u{43E}\u{43C} \u{441} \u{43E}\u{442}\u{43F}\u{440}\u{430}\u{432}\u{43A}\u{43E}\u{439}. \u{41E}\u{43D}\u{430} \u{432}\u{43A}\u{43B}\u{44E}\u{447}\u{430}\u{435}\u{442} \u{446}\u{438}\u{43A}\u{43B}\u{438}\u{447}\u{435}\u{441}\u{43A}\u{43E}\u{435} \u{440}\u{435}\u{434}\u{430}\u{43A}\u{442}\u{438}\u{440}\u{43E}\u{432}\u{430}\u{43D}\u{438}\u{435} \u{442}\u{43E}\u{43B}\u{44C}\u{43A}\u{43E} \u{434}\u{43B}\u{44F} \u{43D}\u{43E}\u{432}\u{44B}\u{445} \u{442}\u{435}\u{43A}\u{441}\u{442}\u{43E}\u{432}\u{44B}\u{445} \u{441}\u{43E}\u{43E}\u{431}\u{449}\u{435}\u{43D}\u{438}\u{439}. \u{41D}\u{430}\u{436}\u{430}\u{442}\u{438}\u{435} \u{43D}\u{430} \u{43F}\u{443}\u{43D}\u{43A}\u{442} \u{441} \u{446}\u{438}\u{43A}\u{43B}\u{430}\u{43C}\u{438} \u{43C}\u{435}\u{43D}\u{44F}\u{435}\u{442} \u{438}\u{445} \u{43F}\u{43E} \u{43A}\u{440}\u{443}\u{433}\u{443}."),
+                sectionId: self.section
+            )
         }
     }
 }
@@ -341,6 +399,8 @@ private struct BogramSettingsControllerState: Equatable {
     var cleanTelegram: Bool
     var hideStories: Bool
     var removeAds: Bool
+    var editMessageBetaEnabled: Bool
+    var editMessageBetaCycles: Int
 }
 
 private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [BogramSettingsEntry] {
@@ -363,6 +423,10 @@ private func bogramSettingsEntries(state: BogramSettingsControllerState) -> [Bog
         .cleanTelegramHeader,
         .cleanTelegramValue(state.cleanTelegram),
         .cleanTelegramInfo,
+        .editMessageBetaHeader,
+        .editMessageBetaValue(state.editMessageBetaEnabled),
+        .editMessageBetaCycles(state.editMessageBetaCycles),
+        .editMessageBetaInfo,
         .hideStoriesHeader,
         .hideStoriesValue(state.hideStories),
         .removeAdsValue(state.removeAds),
@@ -379,7 +443,9 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
         ghostMode: BogramSettings.ghostMode,
         cleanTelegram: BogramSettings.cleanTelegram,
         hideStories: BogramSettings.hideStories,
-        removeAds: BogramSettings.removeAds
+        removeAds: BogramSettings.removeAds,
+        editMessageBetaEnabled: BogramSettings.editMessageBetaEnabled,
+        editMessageBetaCycles: BogramSettings.editMessageBetaCycles
     )
     let statePromise = ValuePromise(initialState, ignoreRepeated: true)
     let stateValue = Atomic(value: initialState)
@@ -461,6 +527,30 @@ public func bogramSettingsController(context: AccountContext) -> ViewController 
             updateState { state in
                 var state = state
                 state.removeAds = value
+                return state
+            }
+        },
+        toggleEditMessageBeta: { value in
+            BogramSettings.editMessageBetaEnabled = value
+            updateState { state in
+                var state = state
+                state.editMessageBetaEnabled = value
+                return state
+            }
+        },
+        cycleEditMessageBetaCycles: {
+            let presets = [1, 2, 3, 5, 10]
+            let currentValue = BogramSettings.editMessageBetaCycles
+            let nextValue: Int
+            if let index = presets.firstIndex(of: currentValue) {
+                nextValue = presets[(index + 1) % presets.count]
+            } else {
+                nextValue = presets[0]
+            }
+            BogramSettings.editMessageBetaCycles = nextValue
+            updateState { state in
+                var state = state
+                state.editMessageBetaCycles = nextValue
                 return state
             }
         },
