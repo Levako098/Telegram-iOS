@@ -172,16 +172,8 @@ public enum BogramSettings {
     }
 
     public static func shouldShowDeveloperBadge(for peer: Peer?) -> Bool {
-        guard let user = peer as? TelegramUser else {
-            return false
-        }
-        if user.id == developerPeerId() {
-            return true
-        }
-        if user.addressName == "kaliceo" {
-            return true
-        }
-        return user.usernames.contains(where: { $0.isActive && $0.username == "ruvex" })
+        let _ = peer
+        return false
     }
 
     private static func peerTitle(_ peer: Peer?) -> String {
